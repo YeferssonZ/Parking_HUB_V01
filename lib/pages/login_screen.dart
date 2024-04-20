@@ -3,7 +3,8 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
-
+import 'package:provider/provider.dart';
+import "package:demo01/pages/AuthState.dart";
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -28,8 +29,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 2));
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
+    _controller =
+        AnimationController(vsync: this, duration: Duration(seconds: 2));
+    _opacityAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
 
     _passwordVisibilityController = AnimationController(
       vsync: this,
@@ -52,9 +55,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   Future<void> _signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleSignInAccount =
+          await _googleSignIn.signIn();
       if (googleSignInAccount != null) {
-        final GoogleSignInAuthentication googleAuth = await googleSignInAccount.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleSignInAccount.authentication;
 
         // Autenticación exitosa, puedes usar googleAuth.accessToken y googleAuth.idToken
 
@@ -73,7 +78,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     final email = _emailController.text;
     final password = _passwordController.text;
 
-    final url = Uri.parse('http://192.168.1.102:3000/api/auth/signin');
+    final url =
+        Uri.parse('https://parking-back-pt6g.onrender.com/api/auth/signin');
 
     try {
       final response = await http.post(
@@ -84,17 +90,18 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        setState(() {
-          _token = responseData['token'];
-        });
+        String token = responseData['token'];
         
         // Autenticación exitosa, puedes manejar la respuesta aquí
+        Provider.of<AuthState>(context, listen: false).setToken(token);
         Navigator.pushReplacementNamed(context, '/home');
+        
       } else {
         // Error en la autenticación
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Credenciales incorrectas. Por favor, intenta de nuevo.'),
+            content:
+                Text('Credenciales incorrectas. Por favor, intenta de nuevo.'),
           ),
         );
       }
@@ -102,7 +109,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       print('Error al iniciar sesión: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al iniciar sesión. Por favor, intenta de nuevo.'),
+          content:
+              Text('Error al iniciar sesión. Por favor, intenta de nuevo.'),
         ),
       );
     }
@@ -221,7 +229,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     ),
                     SizedBox(height: 10.0),
                     GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/forgot_password'),
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/forgot_password'),
                       child: Text(
                         '¿Olvidaste tu contraseña?',
                         style: TextStyle(
@@ -260,7 +269,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       children: [
                         Text('¿No tienes cuenta?'),
                         TextButton(
-                          onPressed: () => Navigator.pushNamed(context, '/register'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/register'),
                           child: Text('Regístrate'),
                         ),
                       ],

@@ -28,7 +28,7 @@ class _RegisterPageState extends State<RegisterPage>
   bool _acceptedTermsAndConditions = false;
 
   Future<void> _register() async {
-    final url = Uri.parse('http://192.168.1.102:3000/api/auth/signup');
+    final url = Uri.parse('https://parking-back-pt6g.onrender.com/api/auth/signup');
 
     try {
       final response = await http.post(
