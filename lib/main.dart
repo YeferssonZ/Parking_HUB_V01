@@ -6,7 +6,7 @@ import 'package:demo01/pages/login_screen.dart';
 import 'package:demo01/pages/register_screen.dart';
 import 'package:demo01/pages/forgot_password_screen.dart';
 import 'package:provider/provider.dart';
-import "package:demo01/pages/AuthState.dart"; // Importa tu clase AuthState
+import "package:demo01/pages/AuthState.dart";
 
 void main() {
   runApp(const Demo01App());

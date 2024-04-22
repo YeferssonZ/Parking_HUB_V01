@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:demo01/pages/AuthState.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -27,8 +30,8 @@ class _RegisterPageState extends State<RegisterPage>
   bool _isConfirmPasswordVisible = false;
   bool _acceptedTermsAndConditions = false;
 
-  Future<void> _register() async {
-    final url = Uri.parse('https://parking-back-pt6g.onrender.com/api/auth/signup');
+  Future<void> _register(BuildContext context) async {
+    final url = Uri.parse('http://192.168.1.102:3000/api/auth/signup');
 
     try {
       final response = await http.post(
@@ -42,7 +45,29 @@ class _RegisterPageState extends State<RegisterPage>
       );
 
       if (response.statusCode == 200) {
-        Navigator.pushReplacementNamed(context, '/home');
+        final responseData = jsonDecode(response.body);
+        String token = responseData['token'];
+
+        Provider.of<AuthState>(context, listen: false).setToken(token);
+
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Registro exitoso'),
+              content: Text('Se ha creado el token correctamente.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.pushReplacementNamed(context, '/home');
+                  },
+                  child: Text('Aceptar'),
+                ),
+              ],
+            );
+          },
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -270,7 +295,6 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                   IconButton(
                                     onPressed: () {
-                                      // Navigate to the terms and conditions page
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -287,7 +311,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 onPressed: () {
                                   if (_formKey.currentState!.validate() &&
                                       _acceptedTermsAndConditions) {
-                                    _register(); // Call the registration function
+                                    _register(context);
                                   } else if (!_acceptedTermsAndConditions) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

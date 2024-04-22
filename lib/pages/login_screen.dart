@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import "package:demo01/pages/AuthState.dart";
+
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -79,7 +80,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     final password = _passwordController.text;
 
     final url =
-        Uri.parse('https://parking-back-pt6g.onrender.com/api/auth/signin');
+        Uri.parse('http://192.168.1.102:3000/api/auth/signin');
+    // Uri.parse('https://parking-back-pt6g.onrender.com/api/auth/signin');
 
     try {
       final response = await http.post(
@@ -91,11 +93,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         String token = responseData['token'];
-        
+
         // Autenticación exitosa, puedes manejar la respuesta aquí
         Provider.of<AuthState>(context, listen: false).setToken(token);
         Navigator.pushReplacementNamed(context, '/home');
-        
       } else {
         // Error en la autenticación
         ScaffoldMessenger.of(context).showSnackBar(

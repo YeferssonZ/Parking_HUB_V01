@@ -47,6 +47,7 @@ dependencies:
   fluttertoast: ^8.2.5
   google_sign_in: ^6.2.1
   provider: ^6.1.2
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:

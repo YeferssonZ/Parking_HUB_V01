@@ -8,11 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
 class HomePage extends StatefulWidget {
-  const HomePage({
-    Key? key,
-  }) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -26,7 +23,6 @@ class _HomePageState extends State<HomePage> {
   String _selectedFilter = 'Noche';
   double? _latitude; // Almacena la latitud
   double? _longitude; // Almacena la longitud
-
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +68,7 @@ class _HomePageState extends State<HomePage> {
               leading: Icon(Icons.person),
               title: Text('Mi perfil'),
               onTap: () {
-                // Implementar acción para Mi perfil
+                Navigator.pushNamed(context, '/profile');
               },
             ),
             ListTile(
@@ -106,7 +102,10 @@ class _HomePageState extends State<HomePage> {
               leading: Icon(Icons.logout),
               title: Text('Cerrar sesión'),
               onTap: () {
-                // Cerrar sesión y navegar a la página de inicio de sesión
+                // Eliminar el token al cerrar sesión
+                Provider.of<AuthState>(context, listen: false).deleteToken();
+                _showLogoutConfirmationDialog(context);
+                // Navegar a la página de inicio de sesión
                 Navigator.pushReplacementNamed(context, '/');
               },
             ),
@@ -125,9 +124,8 @@ class _HomePageState extends State<HomePage> {
                 target: LatLng(0, 0),
                 zoom: 15,
               ),
-              myLocationEnabled: true, // Mostrar el botón de "Mi ubicación"
-              myLocationButtonEnabled:
-                  true, // Mostrar el botón azulito para la ubicación actual
+              myLocationEnabled: true,
+              myLocationButtonEnabled: true,
             ),
           ),
           if (_showParkingOptions)
@@ -135,35 +133,30 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Elegiste $_selectedFilter',
-                  style: TextStyle(fontSize: 28),),
                   Text(
-                    
-                    'Monto seleccionado: S/. ${_sliderValue.toStringAsFixed(1)}', // Muestra el valor actual del slider
+                    'Elegiste $_selectedFilter',
+                    style: TextStyle(fontSize: 28),
+                  ),
+                  Text(
+                    'Monto seleccionado: S/. ${_sliderValue.toStringAsFixed(1)}',
                     style: TextStyle(fontSize: 18),
                   ),
                   Slider(
-                    value: _sliderValue, // Valor actual del slider
-                    min: 0.0, // Valor mínimo
-                    max: 100.0, // Valor máximo
-                    divisions:
-                        100, // Divisiones para permitir incrementos de 0.1
-                    label:
-                        'S/. ${_sliderValue.toStringAsFixed(1)}', // Etiqueta que muestra el valor actual
+                    value: _sliderValue,
+                    min: 0.0,
+                    max: 100.0,
+                    divisions: 100,
+                    label: 'S/. ${_sliderValue.toStringAsFixed(1)}',
                     onChanged: (newValue) {
                       setState(() {
-                        _sliderValue =
-                            newValue; // Actualiza el valor del slider
+                        _sliderValue = newValue;
                       });
                     },
                   ),
                   ElevatedButton(
                     onPressed: () => _submitForm(token),
                     child: Text('Confirmar Monto'),
-
                   ),
-
-                  // Aquí puedes agregar las opciones de estacionamiento según el filtro seleccionado
                 ],
               ),
             ),
@@ -201,20 +194,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _getCurrentLocation() async {
-    // Verificar si se tienen los permisos de ubicación
     final status = await Permission.location.request();
     if (status != PermissionStatus.granted) {
-      // Permiso denegado por el usuario
       return;
     }
 
-    // Intentar obtener la ubicación actual
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      _latitude = position.latitude; // Asignar latitud
-      _longitude = position.longitude; // Asignar longitud
+      _latitude = position.latitude;
+      _longitude = position.longitude;
       _mapController.animateCamera(
         CameraUpdate.newLatLngZoom(
           LatLng(position.latitude, position.longitude),
@@ -225,13 +215,14 @@ class _HomePageState extends State<HomePage> {
       print("Error obtaining current location: $e");
     }
   }
+
   Future<void> _submitForm(String token) async {
-    final url = Uri.parse('https://parking-back-pt6g.onrender.com/api/oferta');
+    final url = Uri.parse('http://192.168.1.102:3000/api/oferta');
 
     final requestBody = {
       'monto': _sliderValue.toStringAsFixed(2),
-      'latitud': _latitude ?? 0, // Puedes cambiar esto con la ubicación real
-      'longitud': _longitude ?? 0, // Puedes cambiar esto con la ubicación real
+      'latitud': _latitude ?? 0,
+      'longitud': _longitude ?? 0,
       'filtroAlquiler': _isNight ? 'true' : 'false',
     };
 
@@ -248,18 +239,100 @@ class _HomePageState extends State<HomePage> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('Solicitud enviada con éxito');
-        // Puedes manejar el resultado exitoso aquí
+        _showConfirmationDialog(context);
       } else {
-        print('Error al enviar la solicitud: ${response.statusCode}');
-        // Manejo de errores aquí
+        _showAlertDialog('Error al enviar la solicitud: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error al enviar la solicitud: $e');
-      // Manejo de excepciones aquí
+      _showAlertDialog('Error al enviar la solicitud: $e');
     }
   }
 
+  Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Cerrar sesión'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('¿Estás seguro de que quieres cerrar sesión?'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Cerrar sesión'),
+              onPressed: () {
+                Provider.of<AuthState>(context, listen: false).deleteToken();
+                Navigator.pushReplacementNamed(context, '/');
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showAlertDialog(String message) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showConfirmationDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Solicitud enviada con éxito'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Esperando contraofertas o aceptación...'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class TermsAndConditionsScreen extends StatelessWidget {
@@ -274,21 +347,11 @@ class TermsAndConditionsScreen extends StatelessWidget {
       body: WebView(
         initialUrl: 'https://darktermsandconditions.netlify.app/privacy.html',
         javascriptMode: JavascriptMode.unrestricted,
-        onProgress: (int progress) {
-          // Aquí puedes manejar el progreso de la carga de la página si lo deseas.
-        },
-        onPageStarted: (String url) {
-          // Se llama cuando la página web ha comenzado a cargarse.
-        },
-        onPageFinished: (String url) {
-          // Se llama cuando la página web ha terminado de cargarse.
-        },
-        onWebResourceError: (WebResourceError error) {
-          // Se llama si ocurre algún error al cargar la página web.
-        },
+        onProgress: (int progress) {},
+        onPageStarted: (String url) {},
+        onPageFinished: (String url) {},
+        onWebResourceError: (WebResourceError error) {},
         navigationDelegate: (NavigationRequest request) {
-          // Puedes personalizar cómo manejar las solicitudes de navegación.
-          // Por ejemplo, para prevenir la navegación a ciertas URL.
           return NavigationDecision.navigate;
         },
       ),

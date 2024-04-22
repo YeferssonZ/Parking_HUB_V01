@@ -9,4 +9,9 @@ class AuthState extends ChangeNotifier {
     _token = token;
     notifyListeners();
   }
+
+  void deleteToken() {
+    _token = '';
+    notifyListeners();
+  }
 }
