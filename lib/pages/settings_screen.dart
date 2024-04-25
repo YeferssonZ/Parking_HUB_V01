@@ -144,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String userId = decodedToken['id'];
 
     // Hacer la solicitud al endpoint de la API para eliminar la cuenta
-    final url = Uri.parse('http://192.168.1.102:3000/api/user/$userId');
+    final url = Uri.parse('https://test-2-slyp.onrender.com/api/user/$userId');
     final response = await http.delete(
       url,
       headers: {'x-access-token': token},

@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'package:animated_text_kit/animated_text_kit.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import "package:demo01/pages/AuthState.dart";
+import 'package:demo01/pages/AuthState.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -25,7 +26,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late final Animation<double> _passwordIconRotationAnimation;
 
   bool _isPasswordVisible = false;
-  String? _token;
 
   @override
   void initState() {
@@ -54,34 +54,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Future<void> _signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleSignInAccount =
-          await _googleSignIn.signIn();
-      if (googleSignInAccount != null) {
-        final GoogleSignInAuthentication googleAuth =
-            await googleSignInAccount.authentication;
-
-        // Autenticación exitosa, puedes usar googleAuth.accessToken y googleAuth.idToken
-
-        // Luego, puedes navegar a la página de inicio o realizar otras acciones.
-        setState(() {
-          _token = googleAuth.idToken;
-        });
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } catch (error) {
-      print('Error al iniciar sesión con Google: $error');
-    }
-  }
-
   Future<void> _signInWithEmailAndPassword() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     final email = _emailController.text;
     final password = _passwordController.text;
 
-    final url =
-        Uri.parse('http://192.168.1.102:3000/api/auth/signin');
-    // Uri.parse('https://parking-back-pt6g.onrender.com/api/auth/signin');
+    final url = Uri.parse('https://test-2-slyp.onrender.com/api/auth/signin');
 
     try {
       final response = await http.post(
@@ -94,27 +75,156 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         final responseData = jsonDecode(response.body);
         String token = responseData['token'];
 
-        // Autenticación exitosa, puedes manejar la respuesta aquí
         Provider.of<AuthState>(context, listen: false).setToken(token);
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        // Error en la autenticación
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Credenciales incorrectas. Por favor, intenta de nuevo.'),
-          ),
+        showDialog<void>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Inicio de sesión correcto'),
+              content: Text('¡Bienvenido!'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Aceptar'),
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  },
+                ),
+              ],
+            );
+          },
         );
+      } else if (response.statusCode == 401) {
+        final responseData = jsonDecode(response.body);
+        String message = responseData['message'];
+
+        if (message == 'Correo no registrado') {
+          _showErrorSnackbar(
+            'Correo no registrado. ¿Deseas registrarte?',
+            _handleRegister,
+          );
+        } else if (message == 'Contraseña incorrecta') {
+          _showErrorSnackbar(
+              'Contraseña incorrecta. Por favor, intenta de nuevo.');
+        } else {
+          _showErrorSnackbar('Error en la autenticación: $message');
+        }
+      } else {
+        _showErrorSnackbar(
+            'Error en la autenticación. Por favor, intenta de nuevo.');
       }
     } catch (error) {
       print('Error al iniciar sesión: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text('Error al iniciar sesión. Por favor, intenta de nuevo.'),
-        ),
-      );
+      _showErrorSnackbar(
+          'Error al iniciar sesión. Por favor, intenta de nuevo.');
     }
+  }
+
+  void _showErrorSnackbar(String message, [VoidCallback? action]) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: action != null
+            ? SnackBarAction(
+                label: 'Aceptar',
+                onPressed: action,
+              )
+            : null,
+      ),
+    );
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      await _googleSignIn.signOut();
+
+      final account = await _googleSignIn.signIn();
+
+      if (account != null) {
+        final response = await http.post(
+          Uri.parse('https://test-2-slyp.onrender.com/api/auth/check'),
+          body: {'email': account.email},
+        );
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          String token = responseData['token'];
+          Provider.of<AuthState>(context, listen: false).setToken(token);
+          showDialog<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Inicio de sesión correcto'),
+                content: Text('¡Bienvenido!'),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('Aceptar'),
+                    onPressed: () {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else if (response.statusCode == 404) {
+          String generateRandomPassword({int length = 10}) {
+            const _chars =
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.';
+            final random = Random();
+            return List.generate(
+                    length, (index) => _chars[random.nextInt(_chars.length)])
+                .join();
+          }
+
+          final signupResponse = await http.post(
+            Uri.parse('https://test-2-slyp.onrender.com/api/auth/signup'),
+            body: {
+              'name': account.displayName,
+              'username': account.email.split('@')[0],
+              'email': account.email,
+              'password': generateRandomPassword(),
+            },
+          );
+
+          if (signupResponse.statusCode == 200) {
+            final responseData = jsonDecode(signupResponse.body);
+            String token = responseData['token'];
+            Provider.of<AuthState>(context, listen: false).setToken(token);
+            showDialog<void>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Inicio de sesión correcto'),
+                  content: Text('¡Bienvenido!'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('Aceptar'),
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/home');
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            print(
+                'Error en la solicitud a la API para registro: ${signupResponse.statusCode}');
+          }
+        } else {
+          print(
+              'Error en la solicitud a la API para verificar el usuario: ${response.statusCode}');
+        }
+      } else {
+        print('Fallo el inicio de sesión');
+      }
+    } catch (error) {
+      print('Error al iniciar sesión con Google: $error');
+    }
+  }
+
+  void _handleRegister() {
+    Navigator.pushNamed(context, '/register');
   }
 
   @override
@@ -228,19 +338,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         return null;
                       },
                     ),
-                    SizedBox(height: 10.0),
-                    GestureDetector(
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/forgot_password'),
-                      child: Text(
-                        '¿Olvidaste tu contraseña?',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 16.0,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
                     SizedBox(height: 20.0),
                     ElevatedButton(
                       onPressed: _signInWithEmailAndPassword,
@@ -270,8 +367,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       children: [
                         Text('¿No tienes cuenta?'),
                         TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/register'),
+                          onPressed: _handleRegister,
                           child: Text('Regístrate'),
                         ),
                       ],

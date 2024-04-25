@@ -27,168 +27,171 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     String token = Provider.of<AuthState>(context).token;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('PARKING HUB'),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Menu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 30,
-                    child: Icon(
-                      Icons.person,
-                      size: 40,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Mi perfil'),
-              onTap: () {
-                Navigator.pushNamed(context, '/profile');
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Configuración'),
-              onTap: () {
-                // Navegar a la pantalla de configuración
-                Navigator.pushNamed(context, '/settings');
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.policy),
-              title: Text('Términos y condiciones'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TermsAndConditionsScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.info),
-              title: Text('About'),
-              onTap: () {
-                // Implementar acción para About
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Cerrar sesión'),
-              onTap: () {
-                // Eliminar el token al cerrar sesión
-                Provider.of<AuthState>(context, listen: false).deleteToken();
-                _showLogoutConfirmationDialog(context);
-                // Navegar a la página de inicio de sesión
-                Navigator.pushReplacementNamed(context, '/');
-              },
-            ),
-          ],
+    return WillPopScope(
+      onWillPop: () async => false, // Bloquear la navegación hacia atrás
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('PARKING HUB'),
+          centerTitle: true,
+          backgroundColor: Colors.blue,
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: GoogleMap(
-              onMapCreated: (controller) {
-                _mapController = controller;
-                _getCurrentLocation();
-              },
-              initialCameraPosition: CameraPosition(
-                target: LatLng(0, 0),
-                zoom: 15,
-              ),
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
-            ),
-          ),
-          if (_showParkingOptions)
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Elegiste $_selectedFilter',
-                    style: TextStyle(fontSize: 28),
+        drawer: Drawer(
+          child: Container(
+            color: Colors.blue[100],
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
                   ),
-                  Text(
-                    'Monto seleccionado: S/. ${_sliderValue.toStringAsFixed(1)}',
-                    style: TextStyle(fontSize: 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Menu',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 30,
+                        child: Icon(
+                          Icons.person,
+                          size: 40,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
                   ),
-                  Slider(
-                    value: _sliderValue,
-                    min: 0.0,
-                    max: 100.0,
-                    divisions: 100,
-                    label: 'S/. ${_sliderValue.toStringAsFixed(1)}',
-                    onChanged: (newValue) {
-                      setState(() {
-                        _sliderValue = newValue;
-                      });
-                    },
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _submitForm(token),
-                    child: Text('Confirmar Monto'),
-                  ),
-                ],
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedFilter = 'x Noche';
-                      _isNight = true;
-                      _showParkingOptions = true;
-                    });
-                  },
-                  child: Text('x Noche'),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedFilter = 'x Hora';
-                      _isNight = false;
-                      _showParkingOptions = true;
-                    });
+                ListTile(
+                  leading: Icon(Icons.person),
+                  title: Text('Mi perfil'),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/profile');
                   },
-                  child: Text('x Hora'),
+                ),
+                ListTile(
+                  leading: Icon(Icons.settings),
+                  title: Text('Configuración'),
+                  onTap: () {
+                    // Navegar a la pantalla de configuración
+                    Navigator.pushNamed(context, '/settings');
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.policy),
+                  title: Text('Términos y condiciones'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TermsAndConditionsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.info),
+                  title: Text('About'),
+                  onTap: () {
+                    // Implementar acción para About
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.logout),
+                  title: Text(
+                    'Cerrar sesión',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onTap: () => _showLogoutConfirmationDialog(context),
                 ),
               ],
             ),
           ),
-        ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: GoogleMap(
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  _getCurrentLocation();
+                },
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(0, 0),
+                  zoom: 15,
+                ),
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+              ),
+            ),
+            if (_showParkingOptions)
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Elegiste $_selectedFilter',
+                      style: TextStyle(fontSize: 28),
+                    ),
+                    Text(
+                      'Monto seleccionado: S/. ${_sliderValue.toStringAsFixed(1)}',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    Slider(
+                      value: _sliderValue,
+                      min: 0.0,
+                      max: 100.0,
+                      divisions: 100,
+                      label: 'S/. ${_sliderValue.toStringAsFixed(1)}',
+                      onChanged: (newValue) {
+                        setState(() {
+                          _sliderValue = newValue;
+                        });
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _submitForm(token),
+                      child: Text('Confirmar Monto'),
+                    ),
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedFilter = 'x Noche';
+                        _isNight = true;
+                        _showParkingOptions = true;
+                      });
+                    },
+                    child: Text('x Noche'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedFilter = 'x Hora';
+                        _isNight = false;
+                        _showParkingOptions = true;
+                      });
+                    },
+                    child: Text('x Hora'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -217,7 +220,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _submitForm(String token) async {
-    final url = Uri.parse('http://192.168.1.102:3000/api/oferta');
+    final url = Uri.parse('https://test-2-slyp.onrender.com/api/oferta');
 
     final requestBody = {
       'monto': _sliderValue.toStringAsFixed(2),
@@ -273,7 +276,7 @@ class _HomePageState extends State<HomePage> {
               child: Text('Cerrar sesión'),
               onPressed: () {
                 Provider.of<AuthState>(context, listen: false).deleteToken();
-                Navigator.pushReplacementNamed(context, '/');
+                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false); // Navegar a la página de inicio y eliminar todas las rutas anteriores
               },
             ),
           ],
