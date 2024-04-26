@@ -4,14 +4,14 @@ import 'dart:convert';
 import 'package:demo01/pages/AuthState.dart';
 import 'package:provider/provider.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key? key}) : super(key: key);
 
   @override
-  _SettingsScreenState createState() => _SettingsScreenState();
+  _SettingsPageState createState() => _SettingsPageState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsPageState extends State<SettingsPage> {
   bool _enableNotifications = true;
   bool _useDarkTheme = false;
   String _selectedLanguage = 'Español';

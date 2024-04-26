@@ -1,5 +1,7 @@
 import 'package:demo01/pages/profile_screen.dart';
 import 'package:demo01/pages/settings_screen.dart';
+import 'package:demo01/pages/socket_services.dart';
+import 'package:demo01/pages/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:demo01/pages/home_screen.dart';
 import 'package:demo01/pages/login_screen.dart';
@@ -17,8 +19,11 @@ class Demo01App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AuthState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthState()),
+        ChangeNotifierProvider(create: (context) => SocketService(serverUrl: 'https://test-2-slyp.onrender.com')),
+      ],
       child: MaterialApp(
         title: 'PARKING HUB',
         theme: ThemeData(
@@ -26,14 +31,16 @@ class Demo01App extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => const LoginPage(),
+          '/': (context) => const WelcomePage(),
+          '/login': (context) => const LoginPage(),
           '/home': (context) => const HomePage(),
           '/register': (context) => const RegisterPage(),
           '/forgot_password': (context) => ForgotPasswordPage(),
-          '/settings': (context) => SettingsScreen(),
-          '/profile': (context) => ProfileScreen(),
+          '/settings': (context) => SettingsPage(),
+          '/profile': (context) => ProfilePage(),
         },
       ),
     );
   }
 }
+
