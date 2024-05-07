@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:demo01/pages/details_garage_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,7 +10,6 @@ import "package:demo01/pages/AuthState.dart";
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:demo01/pages/socket_services.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -26,12 +26,27 @@ class _HomePageState extends State<HomePage> {
   String _selectedFilter = 'Noche';
   double? _latitude; // Almacena la latitud
   double? _longitude; // Almacena la longitud
+  double _hours = 1.0; // Valor inicial
   late io.Socket socket;
 
-  void _ListenerSocket() {
-    socket.on('nueva_contra', (data) {
-      
+
+  @override
+  void initState() {
+    super.initState();
+    // Conectar al servidor Socket.IO
+    socket = io.io('https://test-2-slyp.onrender.com', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': false,
     });
+    socket.connect();
+  }
+
+  @override
+  void dispose() {
+    // Desconectar y liberar recursos del socket
+    socket.disconnect();
+    socket.dispose();
+    super.dispose();
   }
 
   @override
@@ -165,9 +180,26 @@ class _HomePageState extends State<HomePage> {
                         });
                       },
                     ),
+                    Slider(
+                      value: _hours,
+                      min: 1,
+                      max: 12,
+                      divisions: 11,
+                      label: '$_hours horas',
+                      onChanged: (newValue) {
+                        setState(() {
+                          _hours = newValue;
+                        });
+                      },
+                    ),
+                    // Mostrar el total a pagar según el monto y las horas seleccionadas
+                    Text(
+                      'Total a pagar: S/. ${_calculateTotal(_sliderValue, _hours).toStringAsFixed(1)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
                     ElevatedButton(
                       onPressed: () => _submitForm(token),
-                      child: Text('Confirmar Monto'),
+                      child: Text('Confirmar Monto y Horas'),
                     ),
                   ],
                 ),
@@ -206,6 +238,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  double _calculateTotal(double montoOferta, double horas) {
+    return montoOferta * horas;
+  }
+
   Future<void> _getCurrentLocation() async {
     final status = await Permission.location.request();
     if (status != PermissionStatus.granted) {
@@ -229,6 +265,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Ejemplo de uso en _submitForm
   Future<void> _submitForm(String token) async {
     final url = Uri.parse('https://test-2-slyp.onrender.com/api/oferta');
 
@@ -237,6 +274,7 @@ class _HomePageState extends State<HomePage> {
       'latitud': _latitude ?? 0,
       'longitud': _longitude ?? 0,
       'filtroAlquiler': _isNight ? 'true' : 'false',
+      'hora': _hours.toInt(), // Convertir horas seleccionadas a entero
     };
 
     final headers = {
@@ -256,12 +294,9 @@ class _HomePageState extends State<HomePage> {
         final ofertaId = responseData['_id']; // Obtener el ID de la oferta
 
         if (ofertaId != null) {
-          _showConfirmationDialog(context);
+          _showConfirmationDialog(context, ofertaId, token);
 
-          // Consultar las contraofertas después de enviar la oferta
-          _fetchContraofertas(ofertaId);
-
-          // Iniciar un temporizador para eliminar la oferta después de 5 minutos (300 segundos)
+          // Iniciar un temporizador para eliminar la oferta después de 1 minuto (60 segundos)
           Timer(Duration(minutes: 1), () {
             _deleteOffer(token,
                 ofertaId); // Pasar el ID de la oferta a la función _deleteOffer
@@ -327,27 +362,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _fetchContraofertas(String ofertaId) async {
-    final url = Uri.parse(
-        'https://test-2-slyp.onrender.com/api/contraoferta?oferta=$ofertaId');
-
-    try {
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        // Parsear la respuesta JSON
-        List<dynamic> contraofertas = jsonDecode(response.body);
-
-        // Mostrar las contraofertas en una ventana emergente
-        _showContraofertasDialog(contraofertas);
-      } else {
-        _showAlertDialog('Error al obtener contraofertas');
-      }
-    } catch (e) {
-      _showAlertDialog('Error al obtener contraofertas: $e');
-    }
-  }
-
   Future<void> _showContraofertasDialog(List<dynamic> contraofertas) async {
     return showDialog<void>(
       context: context,
@@ -377,30 +391,136 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _showConfirmationDialog(BuildContext context) async {
-    return showDialog<void>(
+  Future<void> _showConfirmationDialog(
+      BuildContext context, String ofertaId, String token) async {
+    List<dynamic> contraofertas = [];
+    bool isDialogOpen = false;
+
+    showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Solicitud enviada con éxito'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Esperando contraofertas o aceptación...'),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            if (!isDialogOpen) {
+              isDialogOpen = true;
+
+              socket.on('nueva_contraOferta', (data) {
+                print('Nueva contraoferta recibida: $data');
+                bool isDuplicate =
+                    contraofertas.any((oferta) => oferta['_id'] == data['_id']);
+                if (!isDuplicate) {
+                  setState(() {
+                    contraofertas.add(data);
+                  });
+                }
+              });
+            }
+
+            return AlertDialog(
+              title: Text('Solicitud enviada con éxito'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: contraofertas.isEmpty
+                      ? [Text('Esperando contraofertas...')]
+                      : contraofertas.map((contraoferta) {
+                          return ListTile(
+                            title: Text('Monto: ${contraoferta['monto']}'),
+                            subtitle: Text('Estado: ${contraoferta['estado']}'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.check),
+                                  onPressed: () {
+                                    _acceptOffer(context, contraoferta);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.close),
+                                  onPressed: () {
+                                    _removeOffer(contraoferta);
+                                    setState(() {
+                                      contraofertas.remove(contraoferta);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: Text('Cerrar'),
+                  onPressed: () {
+                    socket.off('nueva_contraOferta');
+                    isDialogOpen = false;
+                    Navigator.of(context).pop();
+                  },
+                ),
               ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cerrar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+            );
+          },
         );
       },
     );
+  }
+
+  void _acceptOffer(BuildContext context, dynamic contraoferta) {
+    print('Aceptaste esta contraoferta: $contraoferta');
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('¡Oferta aceptada!'),
+          content: Text('Aceptaste esta oferta. Redirigiendo...'),
+        );
+      },
+    );
+
+    // Redireccionar a la pantalla de detalles del garaje después de 5 segundos
+    Future.delayed(Duration(seconds: 5), () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DetailsGaragePage(
+            garageId: contraoferta['garage'],
+            selectedHours: _hours,
+            ofertaId: contraoferta['_id'],
+          ),
+        ),
+      );
+    });
+  }
+
+  void _removeOffer(dynamic contraoferta) {
+    print('Eliminaste esta contraoferta: $contraoferta');
+    // Aquí podrías implementar cualquier lógica adicional necesaria para eliminar la contraoferta del servidor
+  }
+
+  Future<List<dynamic>> _fetchContraofertas(
+      String ofertaId, String token) async {
+    final url = Uri.parse(
+        'https://test-2-slyp.onrender.com/api/contraoferta?oferta=$ofertaId');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'x-access-token': token},
+      );
+
+      if (response.statusCode == 200) {
+        List<dynamic> contraofertas = jsonDecode(response.body);
+        return contraofertas;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error al obtener contraofertas: $e');
+      return [];
+    }
   }
 
   Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
