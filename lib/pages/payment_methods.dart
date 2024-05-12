@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:demo01/pages/AuthState.dart';
 import 'package:uuid/uuid.dart';
+import 'package:demo01/pages/home_screen.dart';
 
 class PayMethodsPage extends StatefulWidget {
   final double selectedHours;
@@ -95,6 +96,13 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
 
         // Enviar notificación al propietario
         await _sendNotificationToOwner(ownerUUID);
+
+        // Redirigir a la pantalla de inicio después de confirmar el pago
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()), // Reemplazar con tu pantalla de inicio
+          (route) => false, // Eliminar todas las rutas existentes del historial
+        );
       } else {
         print('Error al actualizar la contraoferta: ${response.statusCode}');
       }
@@ -170,16 +178,29 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
                     style: TextStyle(fontSize: 18.0),
                   ),
                   SizedBox(height: 16.0),
-                  Text(
-                    'Monto de la Contraoferta: S/. ${montoContraoferta.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 18.0),
-                  ),
+                  Divider(),
                   SizedBox(height: 16.0),
                   Text(
-                    'Monto Total a Pagar: S/. ${totalAmount.toStringAsFixed(2)}',
-                    style:
-                        TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                    'Monto de la Contraoferta:',
+                    style: TextStyle(fontSize: 18.0),
                   ),
+                  Text(
+                    'S/. ${montoContraoferta.toStringAsFixed(2)}',
+                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16.0),
+                  Divider(),
+                  SizedBox(height: 16.0),
+                  Text(
+                    'Monto Total a Pagar:',
+                    style: TextStyle(fontSize: 18.0),
+                  ),
+                  Text(
+                    'S/. ${totalAmount.toStringAsFixed(2)}',
+                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16.0),
+                  Divider(),
                   SizedBox(height: 16.0),
                   Text(
                     'Selecciona un método de pago:',
@@ -243,8 +264,12 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
                           ),
                         );
 
-                        // Volver a la pantalla anterior
-                        Navigator.pop(context);
+                        // Redirigir a la pantalla de inicio después de confirmar el pago
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomePage()),
+                          (route) => false,
+                        );
                       } catch (e) {
                         // En caso de error, mostrar un mensaje de error
                         Navigator.of(context)

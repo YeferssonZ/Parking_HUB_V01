@@ -82,9 +82,6 @@ class _RegisterPageState extends State<RegisterPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Regístrate'),
-      ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -215,7 +212,8 @@ class _RegisterPageState extends State<RegisterPage>
                               suffixIcon: GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                                    _isConfirmPasswordVisible =
+                                        !_isConfirmPasswordVisible;
                                   });
                                 },
                                 child: Icon(
@@ -262,7 +260,8 @@ class _RegisterPageState extends State<RegisterPage>
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => TermsAndConditionsScreen(),
+                                      builder: (context) =>
+                                          TermsAndConditionsScreen(),
                                     ),
                                   );
                                 },
@@ -300,7 +299,10 @@ class _RegisterPageState extends State<RegisterPage>
                             children: [
                               Text('¿Ya tienes cuenta?'),
                               TextButton(
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: () {
+                                  Navigator.pushReplacementNamed(context,
+                                      '/login'); // Redirige a la página de inicio de sesión
+                                },
                                 child: Text('Iniciar Sesión'),
                               ),
                             ],
@@ -329,16 +331,12 @@ class TermsAndConditionsScreen extends StatelessWidget {
         title: Text('Términos y condiciones'),
       ),
       body: WebView(
-        initialUrl: 'https://darktermsandconditions.netlify.app/privacy.html',
+        initialUrl: 'https://terminos-condiciones-nine.vercel.app/',
         javascriptMode: JavascriptMode.unrestricted,
-        onProgress: (int progress) {
-        },
-        onPageStarted: (String url) {
-        },
-        onPageFinished: (String url) {
-        },
-        onWebResourceError: (WebResourceError error) {
-        },
+        onProgress: (int progress) {},
+        onPageStarted: (String url) {},
+        onPageFinished: (String url) {},
+        onWebResourceError: (WebResourceError error) {},
         navigationDelegate: (NavigationRequest request) {
           return NavigationDecision.navigate;
         },

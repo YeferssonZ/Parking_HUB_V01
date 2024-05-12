@@ -63,7 +63,7 @@ class _WelcomePageState extends State<WelcomePage>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Acabas de ahorrar una semana de desarrollo y dolores de cabeza.',
+                'Encuentra el lugar perfecto para estacionar de manera fácil y segura con PARKING HUB.',
                 style: TextStyle(
                   color: Colors.purpleAccent, // Texto en color lila medio
                   fontSize: 18,

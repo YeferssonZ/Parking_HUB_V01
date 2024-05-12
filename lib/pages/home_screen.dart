@@ -9,6 +9,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import "package:demo01/pages/AuthState.dart";
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert';
 
 class HomePage extends StatefulWidget {
@@ -28,7 +29,6 @@ class _HomePageState extends State<HomePage> {
   double? _longitude; // Almacena la longitud
   double _hours = 1.0; // Valor inicial
   late io.Socket socket;
-
 
   @override
   void initState() {
@@ -122,9 +122,14 @@ class _HomePageState extends State<HomePage> {
                 ),
                 ListTile(
                   leading: Icon(Icons.info),
-                  title: Text('About'),
+                  title: Text('Acerca de'),
                   onTap: () {
-                    // Implementar acción para About
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AboutScreen(),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
@@ -269,12 +274,20 @@ class _HomePageState extends State<HomePage> {
   Future<void> _submitForm(String token) async {
     final url = Uri.parse('https://test-2-slyp.onrender.com/api/oferta');
 
+    // Obtener la fecha y hora actual en formato deseado (por ejemplo, 'yyyy-MM-dd HH:mm:ss')
+    final currentDateTime = DateTime.now();
+    final formattedDateTime = currentDateTime
+        .toString()
+        .split('.')[0]; // Eliminar la parte de milisegundos
+
     final requestBody = {
       'monto': _sliderValue.toStringAsFixed(2),
       'latitud': _latitude ?? 0,
       'longitud': _longitude ?? 0,
       'filtroAlquiler': _isNight ? 'true' : 'false',
       'hora': _hours.toInt(), // Convertir horas seleccionadas a entero
+      'fechaHora':
+          formattedDateTime, // Agregar la fecha y hora formateada al cuerpo de la solicitud
     };
 
     final headers = {
@@ -296,8 +309,8 @@ class _HomePageState extends State<HomePage> {
         if (ofertaId != null) {
           _showConfirmationDialog(context, ofertaId, token);
 
-          // Iniciar un temporizador para eliminar la oferta después de 1 minuto (60 segundos)
-          Timer(Duration(minutes: 1), () {
+          // Iniciar un temporizador para eliminar la oferta después de 3 minutos
+          Timer(Duration(minutes: 3), () {
             _deleteOffer(token,
                 ofertaId); // Pasar el ID de la oferta a la función _deleteOffer
           });
@@ -426,7 +439,14 @@ class _HomePageState extends State<HomePage> {
                       : contraofertas.map((contraoferta) {
                           return ListTile(
                             title: Text('Monto: ${contraoferta['monto']}'),
-                            subtitle: Text('Estado: ${contraoferta['estado']}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Estado: ${contraoferta['estado']}'),
+                                Text(
+                                    'Fecha y hora: ${_formatDateTime(contraoferta['createdAt'])}'),
+                              ],
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -468,6 +488,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  String _formatDateTime(String dateTimeString) {
+    DateTime dateTime = DateTime.parse(dateTimeString);
+    String formattedDateTime = DateFormat('dd/MM/yyyy HH:mm')
+        .format(dateTime);
+    return formattedDateTime;
+  }
+
   void _acceptOffer(BuildContext context, dynamic contraoferta) {
     print('Aceptaste esta contraoferta: $contraoferta');
     showDialog(
@@ -495,9 +522,37 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _removeOffer(dynamic contraoferta) {
+  void _removeOffer(dynamic contraoferta) async {
     print('Eliminaste esta contraoferta: $contraoferta');
-    // Aquí podrías implementar cualquier lógica adicional necesaria para eliminar la contraoferta del servidor
+
+    final String contraofertaId =
+        contraoferta['_id']; // Obtener el ID de la contraoferta
+
+    final url = Uri.parse(
+        'https://test-2-slyp.onrender.com/api/contraoferta/$contraofertaId');
+
+    final headers = {
+      'Content-Type': 'application/json',
+      // Aquí podrías incluir cualquier otro encabezado necesario, como el token de acceso
+    };
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        // Contraoferta eliminada correctamente
+        print('Contraoferta eliminada correctamente');
+      } else {
+        // Error al eliminar la contraoferta
+        print('Error al eliminar la contraoferta: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Error de conexión o solicitud
+      print('Error al eliminar la contraoferta: $e');
+    }
   }
 
   Future<List<dynamic>> _fetchContraofertas(
@@ -572,7 +627,31 @@ class TermsAndConditionsScreen extends StatelessWidget {
         title: Text('Términos y condiciones'),
       ),
       body: WebView(
-        initialUrl: 'https://darktermsandconditions.netlify.app/privacy.html',
+        initialUrl: 'https://terminos-condiciones-nine.vercel.app/',
+        javascriptMode: JavascriptMode.unrestricted,
+        onProgress: (int progress) {},
+        onPageStarted: (String url) {},
+        onPageFinished: (String url) {},
+        onWebResourceError: (WebResourceError error) {},
+        navigationDelegate: (NavigationRequest request) {
+          return NavigationDecision.navigate;
+        },
+      ),
+    );
+  }
+}
+
+class AboutScreen extends StatelessWidget {
+  const AboutScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Acerca de'),
+      ),
+      body: WebView(
+        initialUrl: 'https://github.com/YeferssonZ',
         javascriptMode: JavascriptMode.unrestricted,
         onProgress: (int progress) {},
         onPageStarted: (String url) {},

@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:demo01/pages/AuthState.dart';
 import 'package:provider/provider.dart';
+import 'package:demo01/pages/AuthState.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
-
-  @override
-  _SettingsPageState createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  bool _enableNotifications = true;
-  bool _useDarkTheme = false;
-  String _selectedLanguage = 'Español';
 
   @override
   Widget build(BuildContext context) {
@@ -24,34 +15,45 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: ListView(
         children: [
-          // Sección de notificaciones
-          _buildSectionHeader('Notificaciones'),
-          SwitchListTile(
-            title: Text('Recibir notificaciones de viajes'),
-            value: _enableNotifications,
-            onChanged: (value) => setState(() => _enableNotifications = value),
+          // Sección de información y decoración
+          _buildSectionHeader('Información General'),
+          ListTile(
+            title: Text('Versión de la aplicación'),
+            trailing: Text('1.0.0'),
           ),
           ListTile(
-            title: Text('Sonido de notificaciones'),
-            trailing: Text('Predeterminado'),
-            onTap: () => _showNotificationSoundDialog(context),
+            title: Text('Última actualización'),
+            trailing: Text('Hoy'),
+          ),
+          Divider(), // Línea divisoria decorativa
+
+          // Sección de diseño y preferencias visuales
+          _buildSectionHeader('Personalización'),
+          ListTile(
+            title: Text('Tema de la aplicación'),
+            trailing: Text('Claro'),
+          ),
+          ListTile(
+            title: Text('Tamaño del texto'),
+            trailing: Text('Mediano'),
+          ),
+          Divider(), // Línea divisoria decorativa
+
+          // Sección de contacto
+          _buildSectionHeader('Contacto'),
+          ListTile(
+            title: Text('Soporte técnico'),
+            trailing: Text('support@example.com'),
+          ),
+          ListTile(
+            title: Text('Sitio web'),
+            trailing: Text('www.parkinghub.com'),
           ),
 
-          // Sección de preferencias
-          _buildSectionHeader('Preferencias'),
-          SwitchListTile(
-            title: Text('Usar tema oscuro'),
-            value: _useDarkTheme,
-            onChanged: (value) => setState(() => _useDarkTheme = value),
-          ),
-          ListTile(
-            title: Text('Idioma'),
-            trailing: Text(_selectedLanguage),
-            onTap: () => _showLanguageDialog(context),
-          ),
+          Divider(), // Línea divisoria decorativa
 
           // Sección de Eliminar cuenta
-          _buildSectionHeader('Información'),
+          _buildSectionHeader('Cuenta'),
           ListTile(
             title: Text(
               'Eliminar Cuenta',
@@ -60,54 +62,6 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () => _confirmDeleteAccount(context),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showNotificationSoundDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Seleccionar sonido de notificaciones'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text('Predeterminado'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              title: Text('Sonido 1'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              title: Text('Sonido 2'),
-              onTap: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showLanguageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Seleccionar idioma'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text('Español'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              title: Text('Inglés'),
-              onTap: () => Navigator.pop(context),
-            ),
-          ],
-        ),
       ),
     );
   }

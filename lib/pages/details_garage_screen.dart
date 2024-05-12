@@ -62,19 +62,16 @@ class _DetailsGaragePageState extends State<DetailsGaragePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _garageData!['imagen'] != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12.0),
-                          child: FadeInImage.assetNetwork(
-                            placeholder:
-                                'assets/images/parking_app_background.jpg',
-                            image: _garageData!['imagen']['secure_url'],
-                            fit: BoxFit.cover,
-                            height: 200.0,
-                            width: double.infinity,
-                          ),
-                        )
-                      : SizedBox(height: 200.0),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: FadeInImage.assetNetwork(
+                      placeholder: 'assets/images/parking_app_background.jpg',
+                      image: _garageData!['imagen']['secure_url'],
+                      fit: BoxFit.cover,
+                      height: 200.0,
+                      width: double.infinity,
+                    ),
+                  ),
                   SizedBox(height: 16.0),
                   Text(
                     'Dirección:',
@@ -110,60 +107,7 @@ class _DetailsGaragePageState extends State<DetailsGaragePage> {
                   Text(
                     widget.selectedHours.toStringAsFixed(1),
                     style: TextStyle(fontSize: 16.0),
-                  ),
-                  SizedBox(height: 16.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Precio por hora:',
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'S/. ${_garageData!['pricePerHour'].toStringAsFixed(2)}',
-                        style: TextStyle(fontSize: 16.0),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Latitud:',
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        _garageData!['latitud']
-                            .toString(),
-                        style: TextStyle(fontSize: 16.0),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Longitud:',
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        _garageData!['longitud']
-                            .toString(),
-                        style: TextStyle(fontSize: 16.0),
-                      ),
-                    ],
-                  ),
+                  ),            
                   SizedBox(height: 32.0),
                   ElevatedButton(
                     onPressed: () {
