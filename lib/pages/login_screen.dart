@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import 'package:demo01/pages/AuthState.dart';
+import 'package:parking_hub/pages/AuthState.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
 class LoginPage extends StatefulWidget {

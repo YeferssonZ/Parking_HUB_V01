@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:demo01/pages/AuthState.dart';
+import 'package:parking_hub/pages/AuthState.dart';
 import 'package:uuid/uuid.dart';
-import 'package:demo01/pages/home_screen.dart';
+import 'package:parking_hub/pages/home_screen.dart';
 
 class PayMethodsPage extends StatefulWidget {
   final double selectedHours;

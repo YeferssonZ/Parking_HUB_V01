@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart'; // Importa OneSignal
 
-import 'package:demo01/pages/AuthState.dart';
-import 'package:demo01/pages/socket_services.dart';
-import 'package:demo01/pages/welcome_screen.dart';
-import 'package:demo01/pages/login_screen.dart';
-import 'package:demo01/pages/home_screen.dart';
-import 'package:demo01/pages/register_screen.dart';
-import 'package:demo01/pages/forgot_password_screen.dart';
-import 'package:demo01/pages/settings_screen.dart';
-import 'package:demo01/pages/profile_screen.dart';
-import 'package:demo01/pages/details_garage_screen.dart';
-import 'package:demo01/pages/payment_methods.dart'; // Importa tu página de métodos de pago
+import 'package:parking_hub/pages/AuthState.dart';
+import 'package:parking_hub/pages/socket_services.dart';
+import 'package:parking_hub/pages/welcome_screen.dart';
+import 'package:parking_hub/pages/login_screen.dart';
+import 'package:parking_hub/pages/home_screen.dart';
+import 'package:parking_hub/pages/register_screen.dart';
+import 'package:parking_hub/pages/forgot_password_screen.dart';
+import 'package:parking_hub/pages/settings_screen.dart';
+import 'package:parking_hub/pages/profile_screen.dart';
+import 'package:parking_hub/pages/details_garage_screen.dart';
+import 'package:parking_hub/pages/payment_methods.dart'; // Importa tu página de métodos de pago
 
 void main() {
   // Inicializa OneSignal antes de ejecutar la aplicación
@@ -25,11 +25,11 @@ void main() {
   // Habilita las notificaciones push
   OneSignal.Notifications.requestPermission(true);
 
-  runApp(const Demo01App());
+  runApp(const ParkingHubApp());
 }
 
-class Demo01App extends StatelessWidget {
-  const Demo01App({Key? key}) : super(key: key);
+class ParkingHubApp extends StatelessWidget {
+  const ParkingHubApp({Key? key}) : super(key: key);
 
   get _hours => null; // Reemplaza con la lógica para obtener las horas
 

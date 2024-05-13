@@ -1,12 +1,12 @@
 import 'dart:async';
-import 'package:demo01/pages/details_garage_screen.dart';
+import 'package:parking_hub/pages/details_garage_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:webview_flutter/webview_flutter.dart';
-import "package:demo01/pages/AuthState.dart";
+import "package:parking_hub/pages/AuthState.dart";
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -28,6 +28,8 @@ class _HomePageState extends State<HomePage> {
   double? _latitude; // Almacena la latitud
   double? _longitude; // Almacena la longitud
   double _hours = 1.0; // Valor inicial
+  Set<Circle> _circles = {}; // Conjunto de círculos en el mapa
+  double _radiusInMeters = 1000.0;
   late io.Socket socket;
 
   @override
@@ -158,6 +160,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 myLocationEnabled: true,
                 myLocationButtonEnabled: true,
+                circles: _circles,
               ),
             ),
             if (_showParkingOptions)
@@ -257,6 +260,7 @@ class _HomePageState extends State<HomePage> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
+      _updateCircle(LatLng(position.latitude, position.longitude));
       _latitude = position.latitude;
       _longitude = position.longitude;
       _mapController.animateCamera(
@@ -268,6 +272,23 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print("Error obtaining current location: $e");
     }
+  }
+
+  void _updateCircle(LatLng center) {
+    _circles.clear(); // Eliminar círculos existentes
+
+    Circle circle = Circle(
+      circleId: CircleId('myCircle'),
+      center: center,
+      radius: _radiusInMeters,
+      fillColor: Colors.blue.withOpacity(0.2), // Color de relleno del círculo (rojo transparente)
+      strokeWidth: 0, // Ancho de la línea del borde del círculo (0 para no mostrar borde)
+      visible: true, // Mostrar el círculo en el mapa
+    );
+
+    setState(() {
+      _circles.add(circle); // Agregar el círculo al conjunto de círculos
+    });
   }
 
   // Ejemplo de uso en _submitForm
