@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:parking_hub/pages/payment_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:parking_hub/pages/payment_methods.dart';
 
 class DetailsGaragePage extends StatefulWidget {
   final String garageId;
@@ -21,6 +21,7 @@ class DetailsGaragePage extends StatefulWidget {
 
 class _DetailsGaragePageState extends State<DetailsGaragePage> {
   Map<String, dynamic>? _garageData;
+  bool _isImageExpanded = false;
 
   @override
   void initState() {
@@ -36,8 +37,7 @@ class _DetailsGaragePageState extends State<DetailsGaragePage> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        final garageData =
-            data.firstWhere((garage) => garage['_id'] == widget.garageId);
+        final garageData = data.firstWhere((garage) => garage['_id'] == widget.garageId);
         setState(() {
           _garageData = garageData;
         });
@@ -53,61 +53,32 @@ class _DetailsGaragePageState extends State<DetailsGaragePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detalles del Garaje'),
+        title: Text(
+          'Detalles del Garaje',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: _garageData == null
           ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+          : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12.0),
-                    child: FadeInImage.assetNetwork(
-                      placeholder: 'assets/images/parking_app_background.jpg',
-                      image: _garageData!['imagen']['secure_url'],
-                      fit: BoxFit.cover,
-                      height: 200.0,
-                      width: double.infinity,
-                    ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isImageExpanded = true;
+                      });
+                    },
+                    child: _buildImageWidget(),
                   ),
+                  SizedBox(height: 24.0),
+                  _buildDetail('Dirección', _garageData!['address'], Icons.location_on),
                   SizedBox(height: 16.0),
-                  Text(
-                    'Dirección:',
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    _garageData!['address'],
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  SizedBox(height: 16.0),
-                  Text(
-                    'Descripción:',
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    _garageData!['description'],
-                    style: TextStyle(fontSize: 16.0),
-                  ),
-                  SizedBox(height: 16.0),
-                  Text(
-                    'Horas Seleccionadas:',
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    widget.selectedHours.toStringAsFixed(1),
-                    style: TextStyle(fontSize: 16.0),
-                  ),            
+                  _buildDetail('Descripción', _garageData!['description'], Icons.description),
                   SizedBox(height: 32.0),
                   ElevatedButton(
                     onPressed: () {
@@ -122,11 +93,12 @@ class _DetailsGaragePageState extends State<DetailsGaragePage> {
                       );
                     },
                     child: Text(
-                      'Seleccionar método de pago',
-                      style: TextStyle(fontSize: 16.0),
+                      'Seleccionar Método de Pago',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
                       minimumSize: Size(double.infinity, 50),
+                      backgroundColor: Color.fromARGB(255, 153, 15, 40),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20.0),
                       ),
@@ -135,6 +107,54 @@ class _DetailsGaragePageState extends State<DetailsGaragePage> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildImageWidget() {
+    return AspectRatio(
+      aspectRatio: 16 / 9, // Proporción de aspecto deseada (16:9)
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12.0),
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _isImageExpanded = !_isImageExpanded;
+            });
+          },
+          child: Image.network(
+            _garageData!['imagen']['secure_url'],
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetail(String title, String value, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 24.0,
+              color: Color.fromARGB(255, 153, 15, 40),
+            ),
+            SizedBox(width: 8.0),
+            Text(
+              title,
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 153, 15, 40)),
+            ),
+          ],
+        ),
+        SizedBox(height: 8.0),
+        Text(
+          value,
+          style: TextStyle(fontSize: 16.0),
+        ),
+      ],
     );
   }
 }

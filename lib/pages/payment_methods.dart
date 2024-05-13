@@ -44,20 +44,20 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
         final dynamic data = jsonDecode(response.body);
         final double monto = (data['monto'] ?? 0).toDouble();
         setState(() {
-          montoContraoferta = monto; // Almacenar el monto de la contraoferta
+          montoContraoferta = monto;
           totalAmount = monto * widget.selectedHours;
-          isLoading = false; // Finaliza la carga
+          isLoading = false;
         });
       } else {
         print('Error al obtener la contraoferta: ${response.statusCode}');
         setState(() {
-          isLoading = false; // Finaliza la carga incluso en caso de error
+          isLoading = false;
         });
       }
     } catch (e) {
       print('Error al obtener la contraoferta: $e');
       setState(() {
-        isLoading = false; // Finaliza la carga en caso de excepción
+        isLoading = false;
       });
     }
   }
@@ -87,21 +87,16 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
         print('Contraoferta actualizada exitosamente');
         print('Respuesta de OneSignal: ${response.body}');
 
-        // Obtener información del propietario (userID)
         final dynamic data = jsonDecode(response.body);
-        final ownerId = data['user']; // ID del propietario obtenido de la API contraoferta
-
-        // Convertir el ownerId a UUID válido
+        final ownerId = data['user'];
         String ownerUUID = toValidUUID(ownerId);
 
-        // Enviar notificación al propietario
         await _sendNotificationToOwner(ownerUUID);
 
-        // Redirigir a la pantalla de inicio después de confirmar el pago
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()), // Reemplazar con tu pantalla de inicio
-          (route) => false, // Eliminar todas las rutas existentes del historial
+          MaterialPageRoute(builder: (context) => HomePage()),
+          (route) => false,
         );
       } else {
         print('Error al actualizar la contraoferta: ${response.statusCode}');
@@ -111,7 +106,6 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
     }
   }
 
-  // Función para convertir un ID en un UUID válido
   String toValidUUID(String id) {
     final uuidRegex = RegExp(
       r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
@@ -119,9 +113,8 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
     );
 
     if (uuidRegex.hasMatch(id)) {
-      return id; // El ID ya es un UUID válido
+      return id;
     } else {
-      // Generar un nuevo UUID basado en el ID proporcionado
       Uuid uuid = Uuid();
       String generatedUUID = uuid.v5(Uuid.NAMESPACE_URL, id);
       return generatedUUID;
@@ -164,7 +157,12 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Métodos de Pago'),
+        title: Text(
+          'Métodos de Pago',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -173,35 +171,10 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Hora(s) Seleccionada(s): ${widget.selectedHours.toStringAsFixed(1)}',
-                    style: TextStyle(fontSize: 18.0),
-                  ),
-                  SizedBox(height: 16.0),
-                  Divider(),
-                  SizedBox(height: 16.0),
-                  Text(
-                    'Monto de la Contraoferta:',
-                    style: TextStyle(fontSize: 18.0),
-                  ),
-                  Text(
-                    'S/. ${montoContraoferta.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 16.0),
-                  Divider(),
-                  SizedBox(height: 16.0),
-                  Text(
-                    'Monto Total a Pagar:',
-                    style: TextStyle(fontSize: 18.0),
-                  ),
-                  Text(
-                    'S/. ${totalAmount.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 16.0),
-                  Divider(),
-                  SizedBox(height: 16.0),
+                  _buildPaymentInfo('Hora(s) Seleccionada(s)', '${widget.selectedHours.toStringAsFixed(1)}'),
+                  _buildPaymentInfo('Monto de la Contraoferta', 'S/. ${montoContraoferta.toStringAsFixed(2)}'),
+                  _buildPaymentInfo('Monto Total a Pagar', 'S/. ${totalAmount.toStringAsFixed(2)}'),
+                  SizedBox(height: 32.0),
                   Text(
                     'Selecciona un método de pago:',
                     style: TextStyle(fontSize: 18.0),
@@ -218,7 +191,13 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
                                 selectedPaymentMethod = value;
                               });
                             },
-                            title: Text(method),
+                            title: Row(
+                              children: [
+                                _buildPaymentIcon(method), // Agregar icono del método de pago
+                                SizedBox(width: 12.0),
+                                Text(method, style: TextStyle(fontSize: 16.0)),
+                              ],
+                            ),
                           ),
                         )
                         .toList(),
@@ -235,7 +214,6 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
                         return;
                       }
 
-                      // Mostrar un indicador de carga
                       showDialog(
                         context: context,
                         barrierDismissible: false,
@@ -247,33 +225,25 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
                       );
 
                       try {
-                        // Simular un proceso de pago asincrónico
-                        await Future.delayed(Duration(seconds: 2));
+                        await Future.delayed(Duration(seconds: 2)); // Simular un proceso de pago
 
-                        // Actualizar el estado y pago de la contraoferta
-                        await _updateContraoferta(
-                            'Aceptada', selectedPaymentMethod!);
+                        await _updateContraoferta('Aceptada', selectedPaymentMethod!);
 
-                        Navigator.of(context)
-                            .pop(); // Ocultar el indicador de carga
+                        Navigator.of(context).pop(); // Ocultar el indicador de carga
 
-                        // Mostrar mensaje de confirmación
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('¡Pago realizado con éxito!'),
                           ),
                         );
 
-                        // Redirigir a la pantalla de inicio después de confirmar el pago
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => HomePage()),
                           (route) => false,
                         );
                       } catch (e) {
-                        // En caso de error, mostrar un mensaje de error
-                        Navigator.of(context)
-                            .pop(); // Ocultar el indicador de carga
+                        Navigator.of(context).pop(); // Ocultar el indicador de carga
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -282,11 +252,69 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
                         );
                       }
                     },
-                    child: Text('Confirmar Pago'),
+                    child: Text(
+                      'Confirmar Pago',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 50),
+                      backgroundColor: Color.fromARGB(255, 153, 15, 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildPaymentInfo(String title, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(fontSize: 18.0),
+        ),
+        SizedBox(height: 8.0),
+        Container(
+          padding: EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Text(
+            value,
+            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+          ),
+        ),
+        SizedBox(height: 16.0),
+      ],
+    );
+  }
+
+  Widget _buildPaymentIcon(String method) {
+    IconData icon;
+    switch (method) {
+      case 'Efectivo':
+        icon = Icons.money;
+        break;
+      case 'YAPE':
+        icon = Icons.phone_android;
+        break;
+      case 'PLIN':
+        icon = Icons.payment;
+        break;
+      default:
+        icon = Icons.credit_card;
+        break;
+    }
+    return Icon(
+      icon,
+      size: 32.0,
+      color: Color.fromARGB(255, 153, 15, 40),
     );
   }
 }

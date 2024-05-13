@@ -12,8 +12,7 @@ class RegisterPage extends StatefulWidget {
   _RegisterPageState createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage>
-    with TickerProviderStateMixin {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -21,9 +20,9 @@ class _RegisterPageState extends State<RegisterPage>
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  bool _acceptedTermsAndConditions = false;
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-  bool _acceptedTermsAndConditions = false;
 
   Future<void> _register(BuildContext context) async {
     final url = Uri.parse('https://test-2-slyp.onrender.com/api/auth/signup');
@@ -50,7 +49,7 @@ class _RegisterPageState extends State<RegisterPage>
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('Registro exitoso'),
-              content: Text('Se ha registrado al usuario correctamente.'),
+              content: Text('Usuario registrado correctamente.'),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
@@ -79,30 +78,41 @@ class _RegisterPageState extends State<RegisterPage>
     }
   }
 
+  void _handleLogin() {
+    Navigator.pushNamed(context, '/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        width: double.infinity,
-        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade800, Colors.blue.shade200],
+            colors: [
+              Color.fromARGB(255, 239, 143, 162),
+              Color.fromARGB(255, 153, 15, 40)
+            ],
           ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            padding: EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Image.asset(
-                  'assets/images/register_image.png',
-                  height: 200.0,
-                  fit: BoxFit.cover,
+                SizedBox(height: 40.0),
+                Text(
+                  '¡Bienvenido PARKERO!\nRegístrate',
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
+                SizedBox(height: 20.0),
                 Card(
                   elevation: 8,
                   shape: RoundedRectangleBorder(
@@ -118,13 +128,10 @@ class _RegisterPageState extends State<RegisterPage>
                             controller: _nameController,
                             decoration: InputDecoration(
                               labelText: 'Nombre',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
                             ),
                             validator: (value) {
                               if (value!.isEmpty) {
-                                return 'El nombre es obligatorio';
+                                return 'Por favor, ingresa tu nombre';
                               }
                               return null;
                             },
@@ -133,17 +140,11 @@ class _RegisterPageState extends State<RegisterPage>
                           TextFormField(
                             controller: _usernameController,
                             decoration: InputDecoration(
-                              labelText: 'Nombre de usuario',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
+                              labelText: 'Usuario',
                             ),
                             validator: (value) {
                               if (value!.isEmpty) {
-                                return 'El nombre de usuario es obligatorio';
-                              }
-                              if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(value)) {
-                                return 'El nombre de usuario solo puede contener letras y números';
+                                return 'Por favor, ingresa un nombre de usuario';
                               }
                               return null;
                             },
@@ -153,16 +154,12 @@ class _RegisterPageState extends State<RegisterPage>
                             controller: _emailController,
                             decoration: InputDecoration(
                               labelText: 'Correo electrónico',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
                             ),
                             validator: (value) {
                               if (value!.isEmpty) {
-                                return 'El correo electrónico es obligatorio';
+                                return 'Por favor, ingresa tu correo electrónico';
                               }
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                  .hasMatch(value)) {
+                              if (!value.contains('@')) {
                                 return 'Ingresa un correo electrónico válido';
                               }
                               return null;
@@ -171,11 +168,9 @@ class _RegisterPageState extends State<RegisterPage>
                           SizedBox(height: 10.0),
                           TextFormField(
                             controller: _passwordController,
+                            obscureText: !_isPasswordVisible,
                             decoration: InputDecoration(
                               labelText: 'Contraseña',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
                               suffixIcon: GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -189,14 +184,12 @@ class _RegisterPageState extends State<RegisterPage>
                                 ),
                               ),
                             ),
-                            obscureText: !_isPasswordVisible,
                             validator: (value) {
                               if (value!.isEmpty) {
-                                return 'La contraseña es obligatoria';
+                                return 'Por favor, ingresa una contraseña';
                               }
-                              if (!RegExp(r'^(?=.*[A-Z])(?=.*\d).{6,}$')
-                                  .hasMatch(value)) {
-                                return 'La contraseña debe contener al menos una mayúscula, un número y tener al menos 6 caracteres';
+                              if (value.length < 6) {
+                                return 'La contraseña debe tener al menos 6 caracteres';
                               }
                               return null;
                             },
@@ -204,11 +197,9 @@ class _RegisterPageState extends State<RegisterPage>
                           SizedBox(height: 10.0),
                           TextFormField(
                             controller: _confirmPasswordController,
+                            obscureText: !_isConfirmPasswordVisible,
                             decoration: InputDecoration(
-                              labelText: 'Confirmar contraseña',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
+                              labelText: 'Confirmar Contraseña',
                               suffixIcon: GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -223,19 +214,17 @@ class _RegisterPageState extends State<RegisterPage>
                                 ),
                               ),
                             ),
-                            obscureText: !_isConfirmPasswordVisible,
                             validator: (value) {
                               if (value!.isEmpty) {
-                                return 'Confirma tu contraseña';
+                                return 'Por favor, confirma tu contraseña';
                               }
-                              if (_passwordController.text !=
-                                  _confirmPasswordController.text) {
+                              if (value != _passwordController.text) {
                                 return 'Las contraseñas no coinciden';
                               }
                               return null;
                             },
                           ),
-                          SizedBox(height: 20.0),
+                          SizedBox(height: 10.0),
                           Row(
                             children: [
                               Checkbox(
@@ -247,12 +236,9 @@ class _RegisterPageState extends State<RegisterPage>
                                 },
                               ),
                               Expanded(
-                                child: IgnorePointer(
-                                  ignoring: true,
-                                  child: Text(
-                                    'Acepto los términos y condiciones',
-                                    style: TextStyle(fontSize: 14.0),
-                                  ),
+                                child: Text(
+                                  'Acepto los términos y condiciones',
+                                  style: TextStyle(fontSize: 16),
                                 ),
                               ),
                               IconButton(
@@ -265,7 +251,7 @@ class _RegisterPageState extends State<RegisterPage>
                                     ),
                                   );
                                 },
-                                icon: Icon(Icons.info_outline),
+                                icon: Icon(Icons.description_outlined),
                               ),
                             ],
                           ),
@@ -275,35 +261,37 @@ class _RegisterPageState extends State<RegisterPage>
                               if (_formKey.currentState!.validate() &&
                                   _acceptedTermsAndConditions) {
                                 _register(context);
-                              } else if (!_acceptedTermsAndConditions) {
+                              } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      'Debes aceptar los términos y condiciones para continuar',
+                                      'Por favor, completa todos los campos y acepta los términos y condiciones',
                                     ),
                                   ),
                                 );
                               }
                             },
-                            child: Text('Registrarse'),
+                            child: Text('Registrarse',
+                                style: TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
                             style: ElevatedButton.styleFrom(
-                              minimumSize: Size(double.infinity, 40.0),
+                              minimumSize: Size(double.infinity, 50),
+                              backgroundColor: Color.fromARGB(255, 153, 15, 40),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
+                                borderRadius: BorderRadius.circular(20.0),
                               ),
                             ),
                           ),
-                          SizedBox(height: 10.0),
+                          SizedBox(height: 20.0),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('¿Ya tienes cuenta?'),
+                              Text('¿Ya tienes una cuenta?'),
                               TextButton(
-                                onPressed: () {
-                                  Navigator.pushReplacementNamed(context,
-                                      '/login'); // Redirige a la página de inicio de sesión
-                                },
-                                child: Text('Iniciar Sesión'),
+                                onPressed: _handleLogin,
+                                child: Text('Inicia sesión aquí'),
                               ),
                             ],
                           ),
@@ -322,13 +310,16 @@ class _RegisterPageState extends State<RegisterPage>
 }
 
 class TermsAndConditionsScreen extends StatelessWidget {
-  const TermsAndConditionsScreen({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Términos y condiciones'),
+        title: Text(
+          'Términos y condiciones',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: WebView(
         initialUrl: 'https://terminos-condiciones-nine.vercel.app/',

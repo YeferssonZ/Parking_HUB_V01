@@ -10,6 +10,7 @@ import "package:parking_hub/pages/AuthState.dart";
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'dart:convert';
 
 class HomePage extends StatefulWidget {
@@ -58,19 +59,22 @@ class _HomePageState extends State<HomePage> {
       onWillPop: () async => false, // Bloquear la navegación hacia atrás
       child: Scaffold(
         appBar: AppBar(
-          title: Text('PARKING HUB'),
+          title: Text('PARKING HUB',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           centerTitle: true,
-          backgroundColor: Colors.blue,
+          backgroundColor: Color.fromARGB(255, 153, 15, 40),
+          iconTheme: IconThemeData(color: Colors.white),
         ),
         drawer: Drawer(
           child: Container(
-            color: Colors.blue[100],
+            color: Color.fromARGB(255, 200, 82, 103),
             child: ListView(
               padding: EdgeInsets.zero,
               children: <Widget>[
                 DrawerHeader(
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: Color.fromARGB(255, 236, 96, 121),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,9 +82,7 @@ class _HomePageState extends State<HomePage> {
                       Text(
                         'Menu',
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                        ),
+                            color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 10),
                       CircleAvatar(
@@ -89,30 +91,33 @@ class _HomePageState extends State<HomePage> {
                         child: Icon(
                           Icons.person,
                           size: 40,
-                          color: Colors.blue,
+                          color: Color.fromARGB(255, 153, 15, 40),
                         ),
                       ),
                     ],
                   ),
                 ),
                 ListTile(
-                  leading: Icon(Icons.person),
-                  title: Text('Mi perfil'),
+                  leading: Icon(Icons.person, color: Colors.white),
+                  title:
+                      Text('Mi perfil', style: TextStyle(color: Colors.white)),
                   onTap: () {
                     Navigator.pushNamed(context, '/profile');
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.settings),
-                  title: Text('Configuración'),
+                  leading: Icon(Icons.settings, color: Colors.white),
+                  title: Text('Configuración',
+                      style: TextStyle(color: Colors.white)),
                   onTap: () {
                     // Navegar a la pantalla de configuración
                     Navigator.pushNamed(context, '/settings');
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.policy),
-                  title: Text('Términos y condiciones'),
+                  leading: Icon(Icons.policy, color: Colors.white),
+                  title: Text('Términos y condiciones,',
+                      style: TextStyle(color: Colors.white)),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -123,8 +128,9 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.info),
-                  title: Text('Acerca de'),
+                  leading: Icon(Icons.info, color: Colors.white),
+                  title:
+                      Text('Acerca de', style: TextStyle(color: Colors.white)),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -135,10 +141,12 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.logout),
+                  leading: Icon(Icons.logout, color: Colors.white),
                   title: Text(
                     'Cerrar sesión',
-                    style: TextStyle(color: Colors.red),
+                    style: TextStyle(
+                        color: Color.fromARGB(255, 60, 58, 198),
+                        fontWeight: FontWeight.bold),
                   ),
                   onTap: () => _showLogoutConfirmationDialog(context),
                 ),
@@ -281,8 +289,10 @@ class _HomePageState extends State<HomePage> {
       circleId: CircleId('myCircle'),
       center: center,
       radius: _radiusInMeters,
-      fillColor: Colors.blue.withOpacity(0.2), // Color de relleno del círculo (rojo transparente)
-      strokeWidth: 0, // Ancho de la línea del borde del círculo (0 para no mostrar borde)
+      fillColor: Colors.blue
+          .withOpacity(0.2), // Color de relleno del círculo (rojo transparente)
+      strokeWidth:
+          0, // Ancho de la línea del borde del círculo (0 para no mostrar borde)
       visible: true, // Mostrar el círculo en el mapa
     );
 
@@ -295,45 +305,72 @@ class _HomePageState extends State<HomePage> {
   Future<void> _submitForm(String token) async {
     final url = Uri.parse('https://test-2-slyp.onrender.com/api/oferta');
 
-    // Obtener la fecha y hora actual en formato deseado (por ejemplo, 'yyyy-MM-dd HH:mm:ss')
-    final currentDateTime = DateTime.now();
-    final formattedDateTime = currentDateTime
-        .toString()
-        .split('.')[0]; // Eliminar la parte de milisegundos
+    // Inicializa el sistema de internacionalización para asegurar la configuración regional correcta
+    await initializeDateFormatting(
+        'es_PE', null); // Utiliza 'es_PE' para español de Perú
 
+    // Obtiene la fecha y hora actual en la zona horaria de Perú
+    final currentDateTime = DateTime.now();
+    final peruTimeZoneOffset = currentDateTime.timeZoneOffset;
+
+    // Formatea la fecha y hora en el formato deseado ('yyyy-MM-dd HH:mm:ss')
+    final formattedDateTime =
+        DateFormat('yyyy-MM-dd HH:mm:ss', 'es_PE').format(currentDateTime);
+
+    // Crea el cuerpo de la solicitud con los datos requeridos
     final requestBody = {
       'monto': _sliderValue.toStringAsFixed(2),
       'latitud': _latitude ?? 0,
       'longitud': _longitude ?? 0,
       'filtroAlquiler': _isNight ? 'true' : 'false',
-      'hora': _hours.toInt(), // Convertir horas seleccionadas a entero
+      'hora': _hours.toInt(), // Convierte las horas seleccionadas a entero
       'fechaHora':
-          formattedDateTime, // Agregar la fecha y hora formateada al cuerpo de la solicitud
+          formattedDateTime, // Agrega la fecha y hora formateada al cuerpo de la solicitud
+      'timeZoneOffset': peruTimeZoneOffset
+          .inHours, // Agrega el offset de la zona horaria de Perú en horas
     };
 
+    // Configura los encabezados de la solicitud HTTP
     final headers = {
       'Content-Type': 'application/json',
       'x-access-token': token,
     };
 
+    bool receivedContraoferta =
+        false; // Bandera para indicar si se recibió una contraoferta
+
     try {
+      // Realiza la solicitud HTTP POST
       final response = await http.post(
         url,
         headers: headers,
         body: jsonEncode(requestBody),
       );
 
+      // Verifica el código de estado de la respuesta
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // Procesa la respuesta obtenida
         final responseData = jsonDecode(response.body);
-        final ofertaId = responseData['_id']; // Obtener el ID de la oferta
+        final ofertaId = responseData['_id']; // Obtiene el ID de la oferta
 
         if (ofertaId != null) {
+          // Muestra el diálogo de confirmación
           _showConfirmationDialog(context, ofertaId, token);
 
-          // Iniciar un temporizador para eliminar la oferta después de 3 minutos
-          Timer(Duration(minutes: 3), () {
-            _deleteOffer(token,
-                ofertaId); // Pasar el ID de la oferta a la función _deleteOffer
+          // Programa la eliminación de la oferta después de 3 minutos
+          Timer(Duration(minutes: 1), () async {
+            if (!receivedContraoferta) {
+              // Si no se recibió una contraoferta, eliminar la oferta
+              await _deleteOffer(
+                  token, ofertaId); // Elimina la oferta utilizando el ID
+            }
+          });
+
+          // Escucha el evento de nueva contraoferta
+          socket.on('nueva_contraOferta', (data) {
+            print('Nueva contraoferta recibida: $data');
+            receivedContraoferta =
+                true; // Marca que se recibió una contraoferta
           });
         } else {
           _showAlertDialog('Error: ID de oferta nulo');
@@ -430,6 +467,10 @@ class _HomePageState extends State<HomePage> {
     List<dynamic> contraofertas = [];
     bool isDialogOpen = false;
 
+    // Inicializa el sistema de internacionalización para asegurar la configuración regional correcta
+    await initializeDateFormatting(
+        'es_PE', null); // Utiliza 'es_PE' para español de Perú
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -510,9 +551,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _formatDateTime(String dateTimeString) {
-    DateTime dateTime = DateTime.parse(dateTimeString);
-    String formattedDateTime = DateFormat('dd/MM/yyyy HH:mm')
-        .format(dateTime);
+    DateTime dateTime = DateTime.parse(dateTimeString).toLocal();
+    final formattedDateTime =
+        DateFormat('dd/MM/yyyy HH:mm', 'es_PE').format(dateTime);
     return formattedDateTime;
   }
 
@@ -645,7 +686,12 @@ class TermsAndConditionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Términos y condiciones'),
+        title: Text(
+          'Términos y condiciones',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: WebView(
         initialUrl: 'https://terminos-condiciones-nine.vercel.app/',
@@ -669,7 +715,12 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Acerca de'),
+        title: Text(
+          'Acerca de',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: WebView(
         initialUrl: 'https://github.com/YeferssonZ',

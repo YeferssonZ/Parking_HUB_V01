@@ -11,48 +11,30 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Configuración'),
+        title: Text(
+          'Configuración',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: ListView(
         children: [
-          // Sección de información y decoración
           _buildSectionHeader('Información General'),
-          ListTile(
-            title: Text('Versión de la aplicación'),
-            trailing: Text('1.0.0'),
-          ),
-          ListTile(
-            title: Text('Última actualización'),
-            trailing: Text('Hoy'),
-          ),
-          Divider(), // Línea divisoria decorativa
+          _buildListTile('Versión de la aplicación', '1.0.0'),
+          _buildListTile('Última actualización', 'Hoy'),
+          Divider(),
 
-          // Sección de diseño y preferencias visuales
           _buildSectionHeader('Personalización'),
-          ListTile(
-            title: Text('Tema de la aplicación'),
-            trailing: Text('Claro'),
-          ),
-          ListTile(
-            title: Text('Tamaño del texto'),
-            trailing: Text('Mediano'),
-          ),
-          Divider(), // Línea divisoria decorativa
+          _buildListTile('Tema de la aplicación', 'Claro'),
+          _buildListTile('Tamaño del texto', 'Mediano'),
+          Divider(),
 
-          // Sección de contacto
           _buildSectionHeader('Contacto'),
-          ListTile(
-            title: Text('Soporte técnico'),
-            trailing: Text('support@example.com'),
-          ),
-          ListTile(
-            title: Text('Sitio web'),
-            trailing: Text('www.parkinghub.com'),
-          ),
+          _buildListTile('Soporte técnico', 'support@gmail.com'),
+          _buildListTile('Sitio web', 'www.parkinghub.com'),
+          Divider(),
 
-          Divider(), // Línea divisoria decorativa
-
-          // Sección de Eliminar cuenta
           _buildSectionHeader('Cuenta'),
           ListTile(
             title: Text(
@@ -63,6 +45,23 @@ class SettingsPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 8.0),
+      child: Text(
+        title,
+        style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildListTile(String title, String trailingText) {
+    return ListTile(
+      title: Text(title),
+      trailing: Text(trailingText),
     );
   }
 
@@ -90,14 +89,10 @@ class SettingsPage extends StatelessWidget {
   }
 
   Future<void> _deleteAccount(BuildContext context) async {
-    // Obtener el token de autenticación del proveedor de estado
     String token = Provider.of<AuthState>(context, listen: false).token;
-
-    // Decodificar el token para obtener el ID del usuario
     Map<String, dynamic> decodedToken = _decodeToken(token);
     String userId = decodedToken['id'];
 
-    // Hacer la solicitud al endpoint de la API para eliminar la cuenta
     final url = Uri.parse('https://test-2-slyp.onrender.com/api/user/$userId');
     final response = await http.delete(
       url,
@@ -105,10 +100,8 @@ class SettingsPage extends StatelessWidget {
     );
 
     if (response.statusCode == 200) {
-      // La cuenta se eliminó correctamente, navegar a la pantalla de inicio de sesión
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     } else {
-      // Hubo un error al eliminar la cuenta, mostrar un mensaje de error
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -123,16 +116,6 @@ class SettingsPage extends StatelessWidget {
         ),
       );
     }
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: EdgeInsets.only(top: 20.0, left: 16.0, bottom: 8.0),
-      child: Text(
-        title,
-        style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-      ),
-    );
   }
 
   Map<String, dynamic> _decodeToken(String token) {

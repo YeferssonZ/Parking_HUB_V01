@@ -1,20 +1,27 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:parking_hub/pages/AuthState.dart';
 import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({Key? key});
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfileScreenState extends State<ProfilePage> {
   String _name = '';
   String _username = '';
   String _email = '';
+
+  TextEditingController _nameController = TextEditingController();
+  TextEditingController _usernameController = TextEditingController();
+
+  bool _isEditing = false;
+  int _editIndex = -1;
 
   @override
   void initState() {
@@ -23,25 +30,31 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _fetchUserData() async {
-    String token = Provider.of<AuthState>(context, listen: false).token;
-    Map<String, dynamic> decodedToken = _decodeToken(token);
-    String userId = decodedToken['id'];
+    try {
+      String token = Provider.of<AuthState>(context, listen: false).token;
+      Map<String, dynamic> decodedToken = _decodeToken(token);
+      String userId = decodedToken['id'];
 
-    final url = Uri.parse('https://test-2-slyp.onrender.com/api/user/$userId');
-    final response = await http.get(
-      url,
-      headers: {'x-access-token': token},
-    );
+      final url = Uri.parse('https://test-2-slyp.onrender.com/api/user/$userId');
+      final response = await http.get(
+        url,
+        headers: {'x-access-token': token},
+      );
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> userData = jsonDecode(response.body);
-      setState(() {
-        _name = userData['name'];
-        _username = userData['username'];
-        _email = userData['email'];
-      });
-    } else {
-      print('Error al obtener los datos del usuario: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        Map<String, dynamic> userData = jsonDecode(response.body);
+        setState(() {
+          _name = userData['name'];
+          _username = userData['username'];
+          _email = userData['email'];
+          _nameController.text = _name;
+          _usernameController.text = _username;
+        });
+      } else {
+        print('Error al obtener los datos del usuario: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error al obtener los datos del usuario: $error');
     }
   }
 
@@ -50,6 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (parts.length != 3) {
       throw Exception('Token inválido');
     }
+
     String payload = _decodeBase64(parts[1]);
     return jsonDecode(payload);
   }
@@ -71,108 +85,139 @@ class _ProfilePageState extends State<ProfilePage> {
     return utf8.decode(base64Url.decode(output));
   }
 
+  Future<void> _updateUserData() async {
+    try {
+      String token = Provider.of<AuthState>(context, listen: false).token;
+      Map<String, dynamic> decodedToken = _decodeToken(token);
+      String userId = decodedToken['id'];
+
+      final url = Uri.parse('https://test-2-slyp.onrender.com/api/user/$userId');
+      final response = await http.put(
+        url,
+        headers: {'x-access-token': token},
+        body: {
+          'name': _nameController.text,
+          'username': _usernameController.text,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _name = _nameController.text;
+          _username = _usernameController.text;
+          _isEditing = false;
+          _editIndex = -1;
+        });
+      } else {
+        print('Error al actualizar los datos del usuario: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error al actualizar los datos del usuario: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Parking Hub - Perfil',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
+          "Perfil",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.blue[900],
-        centerTitle: true,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
+        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.blue[200],
-              backgroundImage: NetworkImage('https://picsum.photos/200'),
-              child: Text(
-                _name.isNotEmpty ? _name[0].toUpperCase() : '',
-                style: TextStyle(
-                  fontSize: 28,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Montserrat',
+        padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: CircleAvatar(
+                  radius: 70,
+                  backgroundImage: NetworkImage('https://picsum.photos/200'),
                 ),
               ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              _name,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue[900],
-                fontFamily: 'Montserrat',
-              ),
-            ),
-            SizedBox(height: 10),
-            Divider(
-              color: Colors.grey[400],
-              thickness: 1.5,
-            ),
-            SizedBox(height: 20),
-            buildUserInfoRow('Usuario:', _username),
-            buildUserInfoRow('Correo:', _email),
-          ],
+              const SizedBox(height: 60),
+              itemProfile('Nombre', _name, Icons.person, 0),
+              const SizedBox(height: 10),
+              itemProfile('Nombre de usuario', _username, Icons.account_circle, 1),
+              const SizedBox(height: 10),
+              itemProfile('Email', _email, Icons.mail_outline, 2),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget buildUserInfoRow(String label, String text) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue[900],
-            fontFamily: 'Montserrat',
+  Widget itemProfile(String title, String subtitle, IconData iconData, int index) {
+    bool isEditable = (title == 'Nombre' || title == 'Nombre de usuario');
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            offset: const Offset(0, 5),
+            color: Colors.grey.withOpacity(.3),
+            spreadRadius: 2,
+            blurRadius: 10,
           ),
+        ],
+      ),
+      child: ListTile(
+        title: Text(
+          title,
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        SizedBox(height: 8),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.blue[700],
-            fontFamily: 'Montserrat',
-          ),
+        subtitle: isEditable && _isEditing && _editIndex == index
+            ? TextFormField(
+                controller: title == 'Nombre' ? _nameController : _usernameController,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: subtitle,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                ),
+              )
+            : Text(subtitle),
+        leading: Icon(
+          iconData,
+          color: isEditable && _editIndex == index ? Colors.green : Colors.black,
         ),
-        SizedBox(height: 15),
-        Container(
-          width: 120,
-          height: 3,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.teal[700]!, Colors.blue[900]!],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        SizedBox(height: 25),
-      ],
+        trailing: isEditable
+            ? _isEditing && _editIndex == index
+                ? IconButton(
+                    onPressed: () async {
+                      await _updateUserData();
+                    },
+                    icon: Icon(
+                      Icons.save,
+                      color: Colors.green,
+                    ),
+                  )
+                : IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _isEditing = true;
+                        _editIndex = index;
+                      });
+                    },
+                    icon: Icon(Icons.edit),
+                  )
+            : null,
+        tileColor: Colors.white,
+      ),
     );
   }
 }
+
