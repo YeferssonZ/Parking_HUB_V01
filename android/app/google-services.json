@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:740879732018:android:3ef9a42ca42d4265cadb2b",
+        "mobilesdk_app_id": "1:740879732018:android:43a9dcb532b808e0cadb2b",
         "android_client_info": {
-          "package_name": "com.example.demo01"
+          "package_name": "com.parkinghub.parkinghubcl"
         }
       },
       "oauth_client": [],

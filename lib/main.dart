@@ -20,7 +20,7 @@ void main() {
   
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
 
-  OneSignal.initialize("d9f94d6b-d05c-4268-98af-7cd5c052fe9c");
+  OneSignal.initialize("516d4d9c-8073-4a15-8ee0-af8dd7304e9f");
 
   // Habilita las notificaciones push
   OneSignal.Notifications.requestPermission(true);

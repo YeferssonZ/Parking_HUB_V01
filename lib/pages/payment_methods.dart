@@ -125,7 +125,7 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
     final String notificationUrl = 'https://onesignal.com/api/v1/notifications';
 
     final Map<String, dynamic> notificationData = {
-      'app_id': 'd9f94d6b-d05c-4268-98af-7cd5c052fe9c',
+      'app_id': '516d4d9c-8073-4a15-8ee0-af8dd7304e9f',
       'include_player_ids': [ownerId],
       'contents': {
         'en': '¡Un usuario ha aceptado la contraoferta y alquilará tu garage por ${widget.selectedHours} horas y te pagará con $selectedPaymentMethod al acercarse al establecimiento!',
@@ -138,7 +138,7 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
         body: jsonEncode(notificationData),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'NjU1YTBlOTAtNTFkMS00YjA3LWFiOGMtNmE2Mzc0ZTdlYWU0',
+          'Authorization': 'ZTJiMTIwNGMtODZiMi00YmIzLThiMTUtOWM2NGUxYTAwY2E4',
         },
       );
 
