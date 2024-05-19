@@ -18,7 +18,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(clientId: '909305615965-6ts2vd4471q2qh9r1bb1t5db062kavts.apps.googleusercontent.com');
 
   late final AnimationController _controller;
   late final Animation<double> _opacityAnimation;

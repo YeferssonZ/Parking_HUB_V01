@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:parking_hub/pages/AuthState.dart';
-import 'package:uuid/uuid.dart';
 import 'package:parking_hub/pages/home_screen.dart';
 
 class PayMethodsPage extends StatefulWidget {
@@ -85,13 +84,7 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
 
       if (response.statusCode == 200) {
         print('Contraoferta actualizada exitosamente');
-        print('Respuesta de OneSignal: ${response.body}');
-
-        final dynamic data = jsonDecode(response.body);
-        final ownerId = data['user'];
-        String ownerUUID = toValidUUID(ownerId);
-
-        await _sendNotificationToOwner(ownerUUID);
+        print('Respuesta del servidor: ${response.body}');
 
         Navigator.pushAndRemoveUntil(
           context,
@@ -103,53 +96,6 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
       }
     } catch (e) {
       print('Error al actualizar la contraoferta: $e');
-    }
-  }
-
-  String toValidUUID(String id) {
-    final uuidRegex = RegExp(
-      r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-      caseSensitive: false,
-    );
-
-    if (uuidRegex.hasMatch(id)) {
-      return id;
-    } else {
-      Uuid uuid = Uuid();
-      String generatedUUID = uuid.v5(Uuid.NAMESPACE_URL, id);
-      return generatedUUID;
-    }
-  }
-
-  Future<void> _sendNotificationToOwner(String ownerId) async {
-    final String notificationUrl = 'https://onesignal.com/api/v1/notifications';
-
-    final Map<String, dynamic> notificationData = {
-      'app_id': '516d4d9c-8073-4a15-8ee0-af8dd7304e9f',
-      'include_player_ids': [ownerId],
-      'contents': {
-        'en': '¡Un usuario ha aceptado la contraoferta y alquilará tu garage por ${widget.selectedHours} horas y te pagará con $selectedPaymentMethod al acercarse al establecimiento!',
-      },
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(notificationUrl),
-        body: jsonEncode(notificationData),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'ZTJiMTIwNGMtODZiMi00YmIzLThiMTUtOWM2NGUxYTAwY2E4',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        print('Notificación enviada al propietario');
-      } else {
-        print('Error al enviar la notificación al propietario: ${response.statusCode}');
-        print('Mensaje de error: ${response.body}');
-      }
-    } catch (e) {
-      print('Error al enviar la notificación al propietario: $e');
     }
   }
 

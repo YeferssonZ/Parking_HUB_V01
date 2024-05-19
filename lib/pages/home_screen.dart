@@ -18,7 +18,8 @@ class PermissionDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Permisos de Ubicación'),
-      content: Text('La empresa Parking Hub desea que le permitas usar tu ubicación actual.'),
+      content: Text(
+          'La empresa Parking Hub desea que le permitas usar tu ubicación actual.'),
       actions: <Widget>[
         TextButton(
           child: Text('Permitir'),
@@ -26,24 +27,18 @@ class PermissionDialog extends StatelessWidget {
             // Solicitar permisos de ubicación
             var status = await Permission.location.request();
             if (status == PermissionStatus.granted) {
-              Navigator.pop(context); // Cerrar el diálogo si se otorgan los permisos
+              Navigator.pop(
+                  context); // Cerrar el diálogo si se otorgan los permisos
             } else {
               // Manejar el caso en el que el usuario no otorga los permisos
               // Puedes mostrar un mensaje o realizar alguna otra acción aquí
             }
           },
         ),
-        TextButton(
-          child: Text('Cancelar'),
-          onPressed: () {
-            Navigator.pop(context); // Cerrar el diálogo si el usuario cancela
-          },
-        ),
       ],
     );
   }
 }
-
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -92,9 +87,11 @@ class _HomePageState extends State<HomePage> {
       // Mostrar el diálogo de permisos de ubicación si no se han otorgado
       showDialog(
         context: context,
-        barrierDismissible: false, // Evitar que se cierre el diálogo haciendo clic fuera de él
+        barrierDismissible:
+            false, // Evitar que se cierre el diálogo haciendo clic fuera de él
         builder: (BuildContext context) {
-          return WillPopScope( // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
+          return WillPopScope(
+            // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
             onWillPop: () async => false,
             child: PermissionDialog(),
           );
@@ -112,7 +109,6 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -217,185 +213,203 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         body: _locationPermissionGranted
-          ? Column(
-              children: [
-                Expanded(
-                  child: GoogleMap(
-                    onMapCreated: (controller) {
-                      _mapController = controller;
-                      _getCurrentLocation();
-                    },
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(0, 0),
-                      zoom: 15,
-                    ),
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    circles: _circles,
-                  ),
-                ),
-                if (_showParkingOptions)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+            ? Column(
+                children: [
+                  Expanded(
+                    child: GoogleMap(
+                      onMapCreated: (controller) {
+                        _mapController = controller;
+                        _getCurrentLocation();
+                      },
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(0, 0),
+                        zoom: 15,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Elegiste $_selectedFilter',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Monto seleccionado: S/. ${_sliderValue.toStringAsFixed(1)}',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                activeTrackColor: Color.fromARGB(255, 153, 15, 40),
-                                inactiveTrackColor: Colors.grey[300],
-                                thumbColor: Color.fromARGB(255, 153, 15, 40),
-                                overlayColor: Color.fromARGB(100, 153, 15, 40),
-                                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
-                                overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
-                                valueIndicatorColor: Color.fromARGB(255, 153, 15, 40),
-                                valueIndicatorTextStyle: TextStyle(color: Colors.white),
-                              ),
-                              child: Slider(
-                                value: _sliderValue,
-                                min: 0,
-                                max: 50,
-                                divisions: 100,
-                                label: 'S/. ${_sliderValue.toStringAsFixed(1)}',
-                                onChanged: (newValue) {
-                                  setState(() {
-                                    _sliderValue = newValue;
-                                  });
-                                },
-                              ),
-                            ),
-                            SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                activeTrackColor: Color.fromARGB(255, 153, 15, 40),
-                                inactiveTrackColor: Colors.grey[300],
-                                thumbColor: Color.fromARGB(255, 153, 15, 40),
-                                overlayColor: Color.fromARGB(100, 153, 15, 40),
-                                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
-                                overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
-                                valueIndicatorColor: Color.fromARGB(255, 153, 15, 40),
-                                valueIndicatorTextStyle: TextStyle(color: Colors.white),
-                              ),
-                              child: Slider(
-                                value: _hours,
-                                min: 1,
-                                max: 12,
-                                divisions: 11,
-                                label: '$_hours horas',
-                                onChanged: (newValue) {
-                                  setState(() {
-                                    _hours = newValue;
-                                  });
-                                },
-                              ),
-                            ),
-                            // Mostrar el total a pagar según el monto y las horas seleccionadas
-                            Text(
-                              'Total a pagar: S/. ${_calculateTotal(_sliderValue, _hours).toStringAsFixed(1)}',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () => _submitForm(token),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color.fromARGB(255, 153, 15, 40),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: true,
+                      circles: _circles,
+                    ),
+                  ),
+                  if (_showParkingOptions)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Elegiste $_selectedFilter',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                child: Text(
-                                  'Confirmar Monto y Horas',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                              SizedBox(height: 16),
+                              Text(
+                                'Monto seleccionado: S/. ${_sliderValue.toStringAsFixed(1)}',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  activeTrackColor:
+                                      Color.fromARGB(255, 153, 15, 40),
+                                  inactiveTrackColor: Colors.grey[300],
+                                  thumbColor: Color.fromARGB(255, 153, 15, 40),
+                                  overlayColor:
+                                      Color.fromARGB(100, 153, 15, 40),
+                                  thumbShape: RoundSliderThumbShape(
+                                      enabledThumbRadius: 10),
+                                  overlayShape: RoundSliderOverlayShape(
+                                      overlayRadius: 20),
+                                  valueIndicatorColor:
+                                      Color.fromARGB(255, 153, 15, 40),
+                                  valueIndicatorTextStyle:
+                                      TextStyle(color: Colors.white),
+                                ),
+                                child: Slider(
+                                  value: _sliderValue,
+                                  min: 0,
+                                  max: 50,
+                                  divisions: 100,
+                                  label:
+                                      'S/. ${_sliderValue.toStringAsFixed(1)}',
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      _sliderValue = newValue;
+                                    });
+                                  },
+                                ),
+                              ),
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  activeTrackColor:
+                                      Color.fromARGB(255, 153, 15, 40),
+                                  inactiveTrackColor: Colors.grey[300],
+                                  thumbColor: Color.fromARGB(255, 153, 15, 40),
+                                  overlayColor:
+                                      Color.fromARGB(100, 153, 15, 40),
+                                  thumbShape: RoundSliderThumbShape(
+                                      enabledThumbRadius: 10),
+                                  overlayShape: RoundSliderOverlayShape(
+                                      overlayRadius: 20),
+                                  valueIndicatorColor:
+                                      Color.fromARGB(255, 153, 15, 40),
+                                  valueIndicatorTextStyle:
+                                      TextStyle(color: Colors.white),
+                                ),
+                                child: Slider(
+                                  value: _hours,
+                                  min: 1,
+                                  max: 12,
+                                  divisions: 11,
+                                  label: '$_hours horas',
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      _hours = newValue;
+                                    });
+                                  },
+                                ),
+                              ),
+                              // Mostrar el total a pagar según el monto y las horas seleccionadas
+                              Text(
+                                'Total a pagar: S/. ${_calculateTotal(_sliderValue, _hours).toStringAsFixed(1)}',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => _submitForm(token),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Color.fromARGB(255, 153, 15, 40),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  textAlign: TextAlign.center,
+                                ),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  child: Text(
+                                    'Confirmar Monto y Horas',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedFilter = 'x Noche';
+                              _isNight = true;
+                              _showParkingOptions = true;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 153, 15, 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            child: Text(
+                              'x Noche',
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedFilter = 'x Hora';
+                              _isNight = false;
+                              _showParkingOptions = true;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 153, 15, 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            child: Text(
+                              'x Hora',
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedFilter = 'x Noche';
-                            _isNight = true;
-                            _showParkingOptions = true;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 153, 15, 40),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          child: Text(
-                            'x Noche',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedFilter = 'x Hora';
-                            _isNight = false;
-                            _showParkingOptions = true;
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 153, 15, 40),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          child: Text(
-                            'x Hora',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            )
-          : SizedBox(),
+                ],
+              )
+            : SizedBox(),
       ),
-
     );
   }
 

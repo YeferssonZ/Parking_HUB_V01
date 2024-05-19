@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart'; // Importa OneSignal
-
 import 'package:parking_hub/pages/AuthState.dart';
 import 'package:parking_hub/pages/socket_services.dart';
 import 'package:parking_hub/pages/welcome_screen.dart';
@@ -12,19 +10,9 @@ import 'package:parking_hub/pages/forgot_password_screen.dart';
 import 'package:parking_hub/pages/settings_screen.dart';
 import 'package:parking_hub/pages/profile_screen.dart';
 import 'package:parking_hub/pages/details_garage_screen.dart';
-import 'package:parking_hub/pages/payment_methods.dart'; // Importa tu página de métodos de pago
+import 'package:parking_hub/pages/payment_methods.dart';
 
 void main() {
-  // Inicializa OneSignal antes de ejecutar la aplicación
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
-  OneSignal.initialize("516d4d9c-8073-4a15-8ee0-af8dd7304e9f");
-
-  // Habilita las notificaciones push
-  OneSignal.Notifications.requestPermission(true);
-
   runApp(const ParkingHubApp());
 }
 
