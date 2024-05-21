@@ -882,7 +882,7 @@ class AboutScreen extends StatelessWidget {
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: WebView(
-        initialUrl: 'https://github.com/YeferssonZ',
+        initialUrl: 'https://parkinghub-aaronbarra040998s-projects.vercel.app/',
         javascriptMode: JavascriptMode.unrestricted,
         onProgress: (int progress) {},
         onPageStarted: (String url) {},

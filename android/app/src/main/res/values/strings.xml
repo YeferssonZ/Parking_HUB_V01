@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Parking Hub</string>
+    <!-- Agrega esta línea -->
+    <string name="google_app_id">909305615965-vbudu35p67igircqprde46rjjr7uc4ot.apps.googleusercontent.com</string>
+</resources>

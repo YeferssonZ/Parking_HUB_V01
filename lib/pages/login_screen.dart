@@ -18,7 +18,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(clientId: '909305615965-6ts2vd4471q2qh9r1bb1t5db062kavts.apps.googleusercontent.com');
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        '909305615965-vbudu35p67igircqprde46rjjr7uc4ot.apps.googleusercontent.com',
+  );
 
   late final AnimationController _controller;
   late final Animation<double> _opacityAnimation;
@@ -135,20 +138,26 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   Future<void> _signInWithGoogle() async {
     try {
+      print(
+          'Intentando cerrar sesión en Google si hay alguna sesión activa...');
       await _googleSignIn.signOut();
 
+      print('Intentando iniciar sesión con Google...');
       final account = await _googleSignIn.signIn();
 
       if (account != null) {
+        print('Inicio de sesión con Google exitoso. Usuario: ${account.email}');
         final response = await http.post(
           Uri.parse('https://test-2-slyp.onrender.com/api/auth/check'),
           body: {'email': account.email},
         );
 
         if (response.statusCode == 200) {
+          print('Usuario encontrado en la API.');
           final responseData = jsonDecode(response.body);
           String token = responseData['token'];
           Provider.of<AuthState>(context, listen: false).setToken(token);
+          print('Token recibido: $token');
           showDialog<void>(
             context: context,
             builder: (BuildContext context) {
@@ -167,6 +176,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             },
           );
         } else if (response.statusCode == 404) {
+          print(
+              'Usuario no encontrado en la API. Intentando registrar un nuevo usuario...');
+
           String generateRandomPassword({int length = 10}) {
             const _chars =
                 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.';
@@ -187,9 +199,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           );
 
           if (signupResponse.statusCode == 200) {
+            print('Registro de nuevo usuario exitoso.');
             final responseData = jsonDecode(signupResponse.body);
             String token = responseData['token'];
             Provider.of<AuthState>(context, listen: false).setToken(token);
+            print('Token recibido después del registro: $token');
             showDialog<void>(
               context: context,
               builder: (BuildContext context) {
@@ -210,13 +224,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           } else {
             print(
                 'Error en la solicitud a la API para registro: ${signupResponse.statusCode}');
+            print('Respuesta del servidor: ${signupResponse.body}');
           }
         } else {
           print(
               'Error en la solicitud a la API para verificar el usuario: ${response.statusCode}');
+          print('Respuesta del servidor: ${response.body}');
         }
       } else {
-        print('Fallo el inicio de sesión');
+        print('Fallo el inicio de sesión con Google: cuenta es nula.');
       }
     } catch (error) {
       print('Error al iniciar sesión con Google: $error');
@@ -346,21 +362,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         minimumSize: Size(double.infinity, 40.0),
                       ),
                     ),
-                    SizedBox(height: 10.0),
-                    ElevatedButton.icon(
-                      onPressed: _signInWithGoogle,
-                      icon: Image.asset(
-                        'assets/images/google.png',
-                        height: 24.0,
-                        width: 24.0,
-                      ),
-                      label: Text('Iniciar con Google'),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        backgroundColor: Colors.white,
-                        minimumSize: Size(double.infinity, 40.0),
-                      ),
-                    ),
+                    // SizedBox(height: 10.0),
+                    // ElevatedButton.icon(
+                    //   onPressed: _signInWithGoogle,
+                    //   icon: Image.asset(
+                    //     'assets/images/google.png',
+                    //     height: 24.0,
+                    //     width: 24.0,
+                    //   ),
+                    //   label: Text('Iniciar con Google'),
+                    //   style: ElevatedButton.styleFrom(
+                    //     foregroundColor: Colors.red,
+                    //     backgroundColor: Colors.white,
+                    //     minimumSize: Size(double.infinity, 40.0),
+                    //   ),
+                    // ),
                     SizedBox(height: 20.0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
