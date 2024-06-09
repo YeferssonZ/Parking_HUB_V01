@@ -79,23 +79,24 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         String token = responseData['token'];
 
         Provider.of<AuthState>(context, listen: false).setToken(token);
-        showDialog<void>(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Inicio de sesión correcto'),
-              content: Text('¡Bienvenido!'),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('Aceptar'),
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/home');
-                  },
-                ),
-              ],
-            );
-          },
-        );
+        // showDialog<void>(
+        //   context: context,
+        //   builder: (BuildContext context) {
+        //     return AlertDialog(
+        //       title: Text('Inicio de sesión correcto'),
+        //       content: Text('¡Bienvenido!'),
+        //       actions: <Widget>[
+        //         TextButton(
+        //           child: Text('Aceptar'),
+        //           onPressed: () {
+        //             Navigator.pushReplacementNamed(context, '/home');
+        //           },
+        //         ),
+        //       ],
+        //     );
+        //   },
+        // );
+        Navigator.pushReplacementNamed(context, '/home');
       } else if (response.statusCode == 401) {
         final responseData = jsonDecode(response.body);
         String message = responseData['message'];

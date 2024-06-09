@@ -104,7 +104,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _checkLocationPermission();
     // Conectar al servidor Socket.IO
     socket = io.io('https://test-2-slyp.onrender.com', <String, dynamic>{
       'transports': ['websocket'],
@@ -117,23 +116,25 @@ class _HomePageState extends State<HomePage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Mostrar la divulgación prominente después de que se hayan completado las inicializaciones
-    if (!_locationPermissionGranted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return WillPopScope(
-            // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
-            onWillPop: () async => false,
-            child: ProminentDisclosureDialog(),
-          );
-        },
-      ).then((_) {
-        // Verificar los permisos de ubicación después de que el usuario haya entendido la divulgación
-        _checkLocationPermission();
-      });
-    }
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      // Mostrar la divulgación prominente después de que se hayan completado las inicializaciones
+      if (!_locationPermissionGranted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return WillPopScope(
+              // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
+              onWillPop: () async => false,
+              child: ProminentDisclosureDialog(),
+            );
+          },
+        ).then((_) {
+          // Verificar los permisos de ubicación después de que el usuario haya entendido la divulgación
+          _checkLocationPermission();
+        });
+      }
+    });
   }
 
   @override
@@ -144,25 +145,43 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  void _showProminentDisclosureDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
+          onWillPop: () async => false,
+          child: ProminentDisclosureDialog(),
+        );
+      },
+    ).then((_) {
+      _checkLocationPermission();
+    });
+  }
+
   Future<void> _checkLocationPermission() async {
     var status = await Permission.location.status;
     if (status != PermissionStatus.granted) {
       // Mostrar el diálogo de permisos de ubicación si no se han otorgado
-      showDialog(
-        context: context,
-        barrierDismissible:
-            false, // Evitar que se cierre el diálogo haciendo clic fuera de él
-        builder: (BuildContext context) {
-          return WillPopScope(
-            // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
-            onWillPop: () async => false,
-            child: PermissionDialog(),
-          );
-        },
-      ).then((_) {
-        // Actualizar el estado después de cerrar el diálogo
-        setState(() {
-          _locationPermissionGranted = true;
+      Future.delayed(Duration.zero, () {
+        showDialog(
+          context: context,
+          barrierDismissible:
+              false, // Evitar que se cierre el diálogo haciendo clic fuera de él
+          builder: (BuildContext context) {
+            return WillPopScope(
+              // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
+              onWillPop: () async => false,
+              child: PermissionDialog(),
+            );
+          },
+        ).then((_) {
+          // Actualizar el estado después de cerrar el diálogo
+          setState(() {
+            _locationPermissionGranted = true;
+          });
         });
       });
     } else {

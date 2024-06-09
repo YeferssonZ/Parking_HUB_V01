@@ -44,24 +44,25 @@ class _RegisterPageState extends State<RegisterPage> {
 
         Provider.of<AuthState>(context, listen: false).setToken(token);
 
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Registro exitoso'),
-              content: Text('Usuario registrado correctamente.'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.pushReplacementNamed(context, '/home');
-                  },
-                  child: Text('Aceptar'),
-                ),
-              ],
-            );
-          },
-        );
+        // showDialog(
+        //   context: context,
+        //   builder: (BuildContext context) {
+        //     return AlertDialog(
+        //       title: Text('Registro exitoso'),
+        //       content: Text('Usuario registrado correctamente.'),
+        //       actions: <Widget>[
+        //         TextButton(
+        //           onPressed: () {
+        //             Navigator.of(context).pop();
+        //             Navigator.pushReplacementNamed(context, '/home');
+        //           },
+        //           child: Text('Aceptar'),
+        //         ),
+        //       ],
+        //     );
+        //   },
+        // );
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
