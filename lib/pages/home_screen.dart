@@ -13,13 +13,53 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:convert';
 
+class ProminentDisclosureDialog extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Divulgación Prominente'),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            Text(
+              'La aplicación PARKING HUB utiliza tu ubicación en segundo plano para ofrecerte una mejor experiencia de usuario. Esta funcionalidad puede consumir más batería.',
+            ),
+            SizedBox(height: 10),
+            Text(
+              'La localización se utiliza en las siguientes situaciones:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              '- En segundo plano para enviar tu ubicación actual a propietarios.',
+            ),
+            Text(
+              '- Cuando la aplicación esté cerrada.',
+            ),
+            Text(
+              '- Siempre en uso, incluso cuando la aplicación no esté en primer plano.',
+            ),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: Text('Entiendo'),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+  }
+}
+
 class PermissionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Permisos de Ubicación'),
       content: Text(
-          'La empresa Parking Hub desea que le permitas usar tu ubicación actual.'),
+          'PARKING HUB desea usar tu ubicación actual para ofrecer una mejor experiencia. Esta aplicación recoge datos de ubicación en tiempo real para habilitar funciones como el envío de tu ubicación actual a propietarios. Tu privacidad es importante para nosotros, y estos datos se manejarán con estricta confidencialidad.'),
       actions: <Widget>[
         TextButton(
           child: Text('Permitir'),
@@ -71,6 +111,29 @@ class _HomePageState extends State<HomePage> {
       'autoConnect': false,
     });
     socket.connect();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Mostrar la divulgación prominente después de que se hayan completado las inicializaciones
+    if (!_locationPermissionGranted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
+            onWillPop: () async => false,
+            child: ProminentDisclosureDialog(),
+          );
+        },
+      ).then((_) {
+        // Verificar los permisos de ubicación después de que el usuario haya entendido la divulgación
+        _checkLocationPermission();
+      });
+    }
   }
 
   @override
