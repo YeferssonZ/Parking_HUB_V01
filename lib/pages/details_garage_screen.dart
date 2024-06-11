@@ -51,62 +51,65 @@ class _DetailsGaragePageState extends State<DetailsGaragePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Detalles del Garaje',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    return WillPopScope(
+      onWillPop: () async => false, // Esto deshabilita el botón de retroceso
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false, // Elimina la flecha de retroceso
+          title: Text(
+            'Detalles del Garaje',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Color.fromARGB(255, 153, 15, 40),
         ),
-        backgroundColor: Color.fromARGB(255, 153, 15, 40),
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      body: _garageData == null
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isImageExpanded = true;
-                      });
-                    },
-                    child: _buildImageWidget(),
-                  ),
-                  SizedBox(height: 24.0),
-                  _buildDetail('Dirección', _garageData!['address'], Icons.location_on),
-                  SizedBox(height: 16.0),
-                  _buildDetail('Descripción', _garageData!['description'], Icons.description),
-                  SizedBox(height: 32.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PayMethodsPage(
-                            ofertaId: widget.ofertaId,
-                            selectedHours: widget.selectedHours,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Seleccionar Método de Pago',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.white),
+        body: _garageData == null
+            ? Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isImageExpanded = true;
+                        });
+                      },
+                      child: _buildImageWidget(),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 50),
-                      backgroundColor: Color.fromARGB(255, 153, 15, 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
+                    SizedBox(height: 24.0),
+                    _buildDetail('Dirección', _garageData!['address'], Icons.location_on),
+                    SizedBox(height: 16.0),
+                    _buildDetail('Descripción', _garageData!['description'], Icons.description),
+                    SizedBox(height: 32.0),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PayMethodsPage(
+                              ofertaId: widget.ofertaId,
+                              selectedHours: widget.selectedHours,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Seleccionar Método de Pago',
+                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 50),
+                        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 

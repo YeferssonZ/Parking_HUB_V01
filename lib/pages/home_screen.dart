@@ -100,6 +100,7 @@ class _HomePageState extends State<HomePage> {
   double _radiusInMeters = 1000.0;
   late io.Socket socket;
   bool _locationPermissionGranted = false;
+  List<dynamic> _contraofertas = [];
 
   @override
   void initState() {
@@ -110,6 +111,22 @@ class _HomePageState extends State<HomePage> {
       'autoConnect': false,
     });
     socket.connect();
+    socket.on('nueva_contraOferta', (data) {
+      print('Nueva contraoferta recibida: $data');
+      bool isDuplicate =
+          _contraofertas.any((oferta) => oferta['_id'] == data['_id']);
+      if (!isDuplicate) {
+        setState(() {
+          _contraofertas.add(data);
+        });
+      }
+    });
+  }
+
+  void _updateContraofertas() {
+    setState(() {
+      // Este método se asegurará de que el estado se actualice y muestre las contraofertas recibidas
+    });
   }
 
   @override
@@ -325,12 +342,24 @@ class _HomePageState extends State<HomePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                'Elegiste $_selectedFilter',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Elegiste $_selectedFilter',
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.notifications),
+                                    onPressed: () {
+                                      _showContraofertasDialog(_contraofertas);
+                                    },
+                                  ),
+                                ],
                               ),
                               SizedBox(height: 16),
                               Text(
@@ -387,9 +416,13 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 child: Slider(
                                   value: _hours,
-                                  min: 1,
+                                  min: _isNight
+                                      ? 8
+                                      : 1, // Establecer mínimo en 8 si es de noche
                                   max: 12,
-                                  divisions: 11,
+                                  divisions: _isNight
+                                      ? 4
+                                      : 11, // Ajustar divisiones para que encaje con las horas disponibles
                                   label: '$_hours horas',
                                   onChanged: (newValue) {
                                     setState(() {
@@ -442,6 +475,7 @@ class _HomePageState extends State<HomePage> {
                             setState(() {
                               _selectedFilter = 'x Noche';
                               _isNight = true;
+                              _hours = 8; // Establecer automáticamente 8 horas
                               _showParkingOptions = true;
                             });
                           },
@@ -677,27 +711,61 @@ class _HomePageState extends State<HomePage> {
   Future<void> _showContraofertasDialog(List<dynamic> contraofertas) async {
     return showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Contraofertas'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: contraofertas.map((contraoferta) {
-                return ListTile(
-                  title: Text('Monto: ${contraoferta['monto']}'),
-                  subtitle: Text('Estado: ${contraoferta['estado']}'),
-                );
-              }).toList(),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cerrar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text('Contraofertas'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: contraofertas.isEmpty
+                      ? [Text('Esperando contraofertas...')]
+                      : contraofertas.map((contraoferta) {
+                          return ListTile(
+                            title: Text('Monto: ${contraoferta['monto']}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Estado: ${contraoferta['estado']}'),
+                                Text(
+                                    'Fecha y hora: ${_formatDateTime(contraoferta['createdAt'])}'),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.check),
+                                  onPressed: () {
+                                    _acceptOffer(context, contraoferta);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.close),
+                                  onPressed: () {
+                                    _removeOffer(contraoferta);
+                                    setState(() {
+                                      contraofertas.remove(contraoferta);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: Text('Minimizar'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -776,9 +844,8 @@ class _HomePageState extends State<HomePage> {
               ),
               actions: [
                 TextButton(
-                  child: Text('Cerrar'),
+                  child: Text('Minimizar'),
                   onPressed: () {
-                    socket.off('nueva_contraOferta');
                     isDialogOpen = false;
                     Navigator.of(context).pop();
                   },

@@ -21,8 +21,8 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         children: [
           _buildSectionHeader('Información General'),
-          _buildListTile('Versión de la aplicación', '1.0.0'),
-          _buildListTile('Última actualización', 'Hoy'),
+          _buildListTile('Versión de la aplicación', '1.0.5'),
+          _buildListTile('Última actualización', '12-06-2024'),
           Divider(),
 
           _buildSectionHeader('Personalización'),
@@ -31,7 +31,7 @@ class SettingsPage extends StatelessWidget {
           Divider(),
 
           _buildSectionHeader('Contacto'),
-          _buildListTile('Soporte técnico', 'support@gmail.com'),
+          _buildListTile('Soporte técnico', 'parking.hub@gmail.com'),
           _buildListTile('Sitio web', 'www.parkinghub.com'),
           Divider(),
 

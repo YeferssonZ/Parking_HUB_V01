@@ -34,7 +34,8 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
 
   Future<void> _fetchContraofertaAndCalculateAmount() async {
     final String ofertaId = widget.ofertaId;
-    final url = Uri.parse('https://test-2-slyp.onrender.com/api/contraoferta/$ofertaId');
+    final url = Uri.parse(
+        'https://test-2-slyp.onrender.com/api/contraoferta/$ofertaId');
 
     try {
       final response = await http.get(url);
@@ -63,7 +64,8 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
 
   Future<void> _updateContraoferta(String estado, String pago) async {
     final String contraofertaId = widget.ofertaId;
-    final String url = 'https://test-2-slyp.onrender.com/api/contraoferta/$contraofertaId';
+    final String url =
+        'https://test-2-slyp.onrender.com/api/contraoferta/$contraofertaId';
 
     final Map<String, String> body = {
       'estado': estado,
@@ -101,118 +103,133 @@ class _PayMethodsPageState extends State<PayMethodsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Métodos de Pago',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    return WillPopScope(
+      onWillPop: () async => false, // Esto deshabilita el botón de retroceso
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false, // Elimina la flecha de retroceso
+          title: Text(
+            'Métodos de Pago',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Color.fromARGB(255, 153, 15, 40),
         ),
-        backgroundColor: Color.fromARGB(255, 153, 15, 40),
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildPaymentInfo('Hora(s) Seleccionada(s)', '${widget.selectedHours.toStringAsFixed(1)}'),
-                  _buildPaymentInfo('Monto de la Contraoferta', 'S/. ${montoContraoferta.toStringAsFixed(2)}'),
-                  _buildPaymentInfo('Monto Total a Pagar', 'S/. ${totalAmount.toStringAsFixed(2)}'),
-                  SizedBox(height: 32.0),
-                  Text(
-                    'Selecciona un método de pago:',
-                    style: TextStyle(fontSize: 18.0),
-                  ),
-                  SizedBox(height: 16.0),
-                  Column(
-                    children: paymentMethods
-                        .map(
-                          (method) => RadioListTile<String>(
-                            value: method,
-                            groupValue: selectedPaymentMethod,
-                            onChanged: (value) {
-                              setState(() {
-                                selectedPaymentMethod = value;
-                              });
-                            },
-                            title: Row(
-                              children: [
-                                _buildPaymentIcon(method), // Agregar icono del método de pago
-                                SizedBox(width: 12.0),
-                                Text(method, style: TextStyle(fontSize: 16.0)),
-                              ],
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  SizedBox(height: 32.0),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (selectedPaymentMethod == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Selecciona un método de pago'),
-                          ),
-                        );
-                        return;
-                      }
-
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        },
-                      );
-
-                      try {
-                        await Future.delayed(Duration(seconds: 2)); // Simular un proceso de pago
-
-                        await _updateContraoferta('Aceptada', selectedPaymentMethod!);
-
-                        Navigator.of(context).pop(); // Ocultar el indicador de carga
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('¡Pago realizado con éxito!'),
-                          ),
-                        );
-
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomePage()),
-                          (route) => false,
-                        );
-                      } catch (e) {
-                        Navigator.of(context).pop(); // Ocultar el indicador de carga
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error al procesar el pago'),
-                          ),
-                        );
-                      }
-                    },
-                    child: Text(
-                      'Confirmar Pago',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.white),
+        body: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildPaymentInfo('Hora(s) Seleccionada(s)',
+                        '${widget.selectedHours.toStringAsFixed(1)}'),
+                    _buildPaymentInfo('Monto de la Contraoferta',
+                        'S/. ${montoContraoferta.toStringAsFixed(2)}'),
+                    _buildPaymentInfo('Monto Total a Pagar',
+                        'S/. ${totalAmount.toStringAsFixed(2)}'),
+                    SizedBox(height: 32.0),
+                    Text(
+                      'Selecciona un método de pago:',
+                      style: TextStyle(fontSize: 18.0),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 50),
-                      backgroundColor: Color.fromARGB(255, 153, 15, 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
+                    SizedBox(height: 16.0),
+                    Column(
+                      children: paymentMethods
+                          .map(
+                            (method) => RadioListTile<String>(
+                              value: method,
+                              groupValue: selectedPaymentMethod,
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedPaymentMethod = value;
+                                });
+                              },
+                              title: Row(
+                                children: [
+                                  _buildPaymentIcon(
+                                      method), // Agregar icono del método de pago
+                                  SizedBox(width: 12.0),
+                                  Text(method,
+                                      style: TextStyle(fontSize: 16.0)),
+                                ],
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    SizedBox(height: 32.0),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (selectedPaymentMethod == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Selecciona un método de pago'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (BuildContext context) {
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                        );
+
+                        try {
+                          await Future.delayed(Duration(
+                              seconds: 2)); // Simular un proceso de pago
+
+                          await _updateContraoferta(
+                              'Aceptada', selectedPaymentMethod!);
+
+                          Navigator.of(context)
+                              .pop(); // Ocultar el indicador de carga
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('¡Pago realizado con éxito!'),
+                            ),
+                          );
+
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => HomePage()),
+                            (route) => false,
+                          );
+                        } catch (e) {
+                          Navigator.of(context)
+                              .pop(); // Ocultar el indicador de carga
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error al procesar el pago'),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(
+                        'Confirmar Pago',
+                        style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 50),
+                        backgroundColor: Color.fromARGB(255, 153, 15, 40),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 
