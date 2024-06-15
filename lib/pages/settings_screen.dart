@@ -21,8 +21,8 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         children: [
           _buildSectionHeader('Información General'),
-          _buildListTile('Versión de la aplicación', '1.0.5'),
-          _buildListTile('Última actualización', '12-06-2024'),
+          _buildListTile('Versión de la aplicación', '1.0.4'),
+          _buildListTile('Última actualización', '11-06-2024'),
           Divider(),
 
           _buildSectionHeader('Personalización'),

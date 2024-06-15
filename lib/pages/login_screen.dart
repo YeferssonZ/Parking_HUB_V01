@@ -257,7 +257,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   Image.asset(
                     'assets/images/parking_app_background.jpg',
                     fit: BoxFit.cover,
-                    height: 200.0,
+                    height: 250.0,
                     width: double.infinity,
                   ),
                   Positioned(
@@ -284,8 +284,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           animatedTexts: [
                             RotateAnimatedText(
                               'PARKING HUB',
-                              textStyle: TextStyle(fontSize: 28.0),
-                              duration: Duration(seconds: 4),
+                              textStyle: TextStyle(fontSize: 48.0),
+                              duration: Duration(seconds: 10),
                             ),
                           ],
                           onTap: () {

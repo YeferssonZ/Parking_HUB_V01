@@ -1,4 +1,4 @@
-package com.parkinghub.parkinghubcl
+package com.parkingshub.parkingshubcl
 
 import io.flutter.embedding.android.FlutterActivity
 

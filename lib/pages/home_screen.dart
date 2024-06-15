@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class ProminentDisclosureDialog extends StatelessWidget {
@@ -101,6 +102,7 @@ class _HomePageState extends State<HomePage> {
   late io.Socket socket;
   bool _locationPermissionGranted = false;
   List<dynamic> _contraofertas = [];
+  late Future<SharedPreferences> _prefs;
 
   @override
   void initState() {
@@ -121,6 +123,8 @@ class _HomePageState extends State<HomePage> {
         });
       }
     });
+
+    _prefs = SharedPreferences.getInstance();
   }
 
   void _updateContraofertas() {
@@ -133,23 +137,27 @@ class _HomePageState extends State<HomePage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      // Mostrar la divulgación prominente después de que se hayan completado las inicializaciones
-      if (!_locationPermissionGranted) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await _prefs;
+      bool hasShownProminentDisclosureDialog =
+          prefs.getBool('hasShownProminentDisclosureDialog') ?? false;
+
+      if (!hasShownProminentDisclosureDialog) {
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (BuildContext context) {
             return WillPopScope(
-              // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
               onWillPop: () async => false,
               child: ProminentDisclosureDialog(),
             );
           },
         ).then((_) {
-          // Verificar los permisos de ubicación después de que el usuario haya entendido la divulgación
+          prefs.setBool('hasShownProminentDisclosureDialog', true);
           _checkLocationPermission();
         });
+      } else {
+        _checkLocationPermission();
       }
     });
   }
@@ -160,22 +168,6 @@ class _HomePageState extends State<HomePage> {
     socket.disconnect();
     socket.dispose();
     super.dispose();
-  }
-
-  void _showProminentDisclosureDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return WillPopScope(
-          // Evitar que el usuario cierre el diálogo con el botón "Atrás" del dispositivo
-          onWillPop: () async => false,
-          child: ProminentDisclosureDialog(),
-        );
-      },
-    ).then((_) {
-      _checkLocationPermission();
-    });
   }
 
   Future<void> _checkLocationPermission() async {
@@ -250,6 +242,13 @@ class _HomePageState extends State<HomePage> {
                           size: 40,
                           color: Color.fromARGB(255, 153, 15, 40),
                         ),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "Bienvenido",
+                        style: TextStyle(color: Colors.white),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -877,8 +876,8 @@ class _HomePageState extends State<HomePage> {
       },
     );
 
-    // Redireccionar a la pantalla de detalles del garaje después de 5 segundos
-    Future.delayed(Duration(seconds: 5), () {
+    // Redireccionar a la pantalla de detalles del garaje después de 3 segundos
+    Future.delayed(Duration(seconds: 3), () {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -1031,7 +1030,7 @@ class AboutScreen extends StatelessWidget {
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: WebView(
-        initialUrl: 'https://parkinghub-aaronbarra040998s-projects.vercel.app/',
+        initialUrl: 'https://www.parkingshub.com',
         javascriptMode: JavascriptMode.unrestricted,
         onProgress: (int progress) {},
         onPageStarted: (String url) {},
